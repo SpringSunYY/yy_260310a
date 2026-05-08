@@ -45,6 +45,10 @@ public class InboundOrderDetailInfo extends BaseEntity
     @Excel(name = "库位")
     private Long locationId;
 
+    /** 库位名称 */
+    @Excel(name = "库位名称")
+    private String locationName;
+
     /** 质量状态 */
     @Excel(name = "质量状态")
     private String qualityStatus;
@@ -122,9 +126,18 @@ public class InboundOrderDetailInfo extends BaseEntity
         this.locationId = locationId;
     }
 
-    public Long getLocationId() 
+    public Long getLocationId()
     {
         return locationId;
+    }
+    public void setLocationName(String locationName)
+    {
+        this.locationName = locationName;
+    }
+
+    public String getLocationName()
+    {
+        return locationName;
     }
     public void setQualityStatus(String qualityStatus) 
     {

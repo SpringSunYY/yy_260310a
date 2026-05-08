@@ -42,3 +42,12 @@ export function delInboundOrderInfo(id) {
     method: 'delete'
   })
 }
+
+// 审核入库单
+export function auditInboundOrderInfo(data) {
+  return request({
+    url: '/manage/inboundOrderInfo/audit',
+    method: 'put',
+    data: data
+  })
+}

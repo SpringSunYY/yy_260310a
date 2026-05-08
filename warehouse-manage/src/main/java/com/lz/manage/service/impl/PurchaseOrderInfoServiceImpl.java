@@ -130,6 +130,8 @@ public class PurchaseOrderInfoServiceImpl extends ServiceImpl<PurchaseOrderInfoM
                            && !purchaseOrderInfoByNo.getOrderId().equals(purchaseOrderInfo.getOrderId()),
                 "采购订单编号已存在");
         purchaseOrderInfo.setUpdateTime(DateUtils.getNowDate());
+        purchaseOrderInfo.setCreateBy(purchaseOrderInfoByNo.getCreateBy());
+        purchaseOrderInfo.setCreateTime(purchaseOrderInfoByNo.getCreateTime());
         purchaseOrderInfoMapper.deletePurchaseOrderDetailInfoByOrderId(purchaseOrderInfo.getOrderId());
         insertPurchaseOrderDetailInfo(purchaseOrderInfo);
         purchaseOrderInfo.setTotalAmount(calculateTotalAmount(purchaseOrderInfo.getPurchaseOrderDetailInfoList()));

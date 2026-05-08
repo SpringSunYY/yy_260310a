@@ -58,11 +58,20 @@ public interface IInboundOrderInfoService extends IService<InboundOrderInfo>
 
     /**
      * 删除入库单信息
-     * 
+     *
      * @param id 入库单主键
      * @return 结果
      */
     public int deleteInboundOrderInfoById(Long id);
+    //endregion
+
+    /**
+     * 审核入库单
+     *
+     * @param inboundOrderInfo 入库单
+     * @return 结果
+     */
+    public int auditInboundOrderInfo(InboundOrderInfo inboundOrderInfo);
     //endregion
     /**
      * 获取查询条件

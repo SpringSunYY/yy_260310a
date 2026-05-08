@@ -114,4 +114,16 @@ public class InboundOrderInfoController extends BaseController
     {
         return toAjax(inboundOrderInfoService.deleteInboundOrderInfoByIds(ids));
     }
+
+    /**
+     * 审核入库单
+     */
+    @PreAuthorize("@ss.hasPermi('manage:inboundOrderInfo:audit')")
+    @Log(title = "入库单审核", businessType = BusinessType.UPDATE)
+    @PutMapping("/audit")
+    public AjaxResult audit(@RequestBody InboundOrderInfoEdit inboundOrderInfoEdit)
+    {
+        InboundOrderInfo inboundOrderInfo = InboundOrderInfoEdit.editToObj(inboundOrderInfoEdit);
+        return toAjax(inboundOrderInfoService.auditInboundOrderInfo(inboundOrderInfo));
+    }
 }

@@ -11,19 +11,32 @@ import com.lz.manage.model.domain.InboundOrderDetailInfo;
 import java.util.Date;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.lz.common.utils.DateUtils;
+import com.lz.common.utils.SecurityUtils;
+import com.lz.common.utils.ThrowUtils;
+import com.lz.manage.enums.WarehouseInboundStatusEnum;
+import com.lz.manage.enums.WarehouseInboundTypeEnum;
+import com.lz.manage.enums.WarehouseOrderApplicantStatusEnum;
+import com.lz.manage.enums.WarehouseOrderStatusEnum;
+import com.lz.manage.mapper.InboundOrderInfoMapper;
+import com.lz.manage.model.domain.InboundOrderInfo;
+import com.lz.manage.model.domain.PurchaseOrderInfo;
+import com.lz.manage.model.domain.SupplierInfo;
+import com.lz.manage.model.domain.WarehouseInfo;
+import com.lz.manage.model.domain.LocationInfo;
+import com.lz.manage.service.IInboundOrderInfoService;
+import com.lz.manage.service.IPurchaseOrderInfoService;
+import com.lz.manage.service.ISupplierInfoService;
+import com.lz.manage.service.IWarehouseInfoService;
+import com.lz.system.service.ISysUserService;
+import com.lz.manage.service.ILocationInfoService;
+import com.lz.manage.model.dto.inboundOrderInfo.InboundOrderInfoQuery;
+import com.lz.manage.model.vo.inboundOrderInfo.InboundOrderInfoVo;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import java.util.ArrayList;
-import com.lz.common.utils.StringUtils;
 import org.springframework.transaction.annotation.Transactional;
-import com.lz.manage.model.domain.InboundOrderDetailInfo;
-import com.lz.manage.mapper.InboundOrderInfoMapper;
-import com.lz.manage.model.domain.InboundOrderInfo;
-import com.lz.manage.service.IInboundOrderInfoService;
-import com.lz.manage.model.dto.inboundOrderInfo.InboundOrderInfoQuery;
-import com.lz.manage.model.vo.inboundOrderInfo.InboundOrderInfoVo;
 
 /**
  * 入库单Service业务层处理
@@ -37,6 +50,21 @@ public class InboundOrderInfoServiceImpl extends ServiceImpl<InboundOrderInfoMap
 
     @Resource
     private InboundOrderInfoMapper inboundOrderInfoMapper;
+
+    @Resource
+    private ISupplierInfoService supplierInfoService;
+
+    @Resource
+    private IPurchaseOrderInfoService purchaseOrderInfoService;
+
+    @Resource
+    private IWarehouseInfoService warehouseInfoService;
+
+    @Resource
+    private ILocationInfoService locationInfoService;
+
+    @Resource
+    private ISysUserService userService;
 
     //region mybatis代码
     /**
@@ -60,7 +88,45 @@ public class InboundOrderInfoServiceImpl extends ServiceImpl<InboundOrderInfoMap
     @Override
     public List<InboundOrderInfo> selectInboundOrderInfoList(InboundOrderInfo inboundOrderInfo)
     {
-        return inboundOrderInfoMapper.selectInboundOrderInfoList(inboundOrderInfo);
+        List<InboundOrderInfo> inboundOrderInfoList = inboundOrderInfoMapper.selectInboundOrderInfoList(inboundOrderInfo);
+        for (InboundOrderInfo info : inboundOrderInfoList) {
+            // 获取仓库名称
+            if (StringUtils.isNotNull(info.getWarehouseId())) {
+                WarehouseInfo warehouseInfo = warehouseInfoService.selectWarehouseInfoById(info.getWarehouseId());
+                if (StringUtils.isNotNull(warehouseInfo)) {
+                    info.setWarehouseName(warehouseInfo.getWarehouseName());
+                }
+            }
+            // 获取供应商名称
+            if (StringUtils.isNotNull(info.getSupplierId())) {
+                SupplierInfo supplierInfo = supplierInfoService.selectSupplierInfoById(info.getSupplierId());
+                if (StringUtils.isNotNull(supplierInfo)) {
+                    info.setSupplierName(supplierInfo.getSupplierName());
+                }
+            }
+            // 获取经办人姓名
+            if (StringUtils.isNotNull(info.getOperatorId())) {
+                com.lz.common.core.domain.entity.SysUser sysUser = userService.selectUserById(info.getOperatorId());
+                if (StringUtils.isNotNull(sysUser)) {
+                    info.setOperatorName(sysUser.getNickName());
+                }
+            }
+            // 获取审核人姓名
+            if (StringUtils.isNotNull(info.getReviewerId())) {
+                com.lz.common.core.domain.entity.SysUser sysUser = userService.selectUserById(info.getReviewerId());
+                if (StringUtils.isNotNull(sysUser)) {
+                    info.setReviewerName(sysUser.getNickName());
+                }
+            }
+            //获取订单
+            if (StringUtils.isNotNull(info.getOrderId())) {
+                PurchaseOrderInfo purchaseOrderInfo = purchaseOrderInfoService.selectPurchaseOrderInfoByOrderId(info.getOrderId());
+                if (StringUtils.isNotNull(purchaseOrderInfo)) {
+                    info.setOrderNo(purchaseOrderInfo.getOrderNo());
+                }
+            }
+        }
+        return inboundOrderInfoList;
     }
 
     /**
@@ -73,10 +139,69 @@ public class InboundOrderInfoServiceImpl extends ServiceImpl<InboundOrderInfoMap
     @Override
     public int insertInboundOrderInfo(InboundOrderInfo inboundOrderInfo)
     {
+        // 设置默认值
+        inboundOrderInfo.setInboundStatus(WarehouseInboundStatusEnum.WAREHOUSE_INBOUND_STATUS_0.getValue());
+        inboundOrderInfo.setReviewStatus(WarehouseOrderApplicantStatusEnum.WAREHOUSE_ORDER_APPLICANT_STATUS_0.getValue());
+        inboundOrderInfo.setCreateBy(SecurityUtils.getUsername());
         inboundOrderInfo.setCreateTime(DateUtils.getNowDate());
+
+        // 校验入库单号是否存在
+        InboundOrderInfo inboundOrderInfoByNo = inboundOrderInfoMapper.selectInboundOrderInfoByNo(inboundOrderInfo.getInboundNo());
+        ThrowUtils.throwIf(StringUtils.isNotNull(inboundOrderInfoByNo), "入库单号已存在");
+
+        // 判断仓库是否存在
+        if (StringUtils.isNotNull(inboundOrderInfo.getWarehouseId())) {
+            WarehouseInfo warehouseInfo = warehouseInfoService.selectWarehouseInfoById(inboundOrderInfo.getWarehouseId());
+            ThrowUtils.throwIf(StringUtils.isNull(warehouseInfo), "仓库不存在");
+        }
+
+        // 判断供应商是否存在
+        if (StringUtils.isNotNull(inboundOrderInfo.getSupplierId())) {
+            SupplierInfo supplierInfo = supplierInfoService.selectSupplierInfoById(inboundOrderInfo.getSupplierId());
+            ThrowUtils.throwIf(StringUtils.isNull(supplierInfo), "供应商不存在");
+        }
+
+        // 如果是采购入库，需要校验订单
+        if (StringUtils.isNotEmpty(inboundOrderInfo.getInboundType())
+            && inboundOrderInfo.getInboundType().equals(WarehouseInboundTypeEnum.WAREHOUSE_INBOUND_TYPE_0.getValue())) {
+            ThrowUtils.throwIf(StringUtils.isNull(inboundOrderInfo.getOrderId()), "采购入库必须选择关联订单");
+            PurchaseOrderInfo purchaseOrderInfo = purchaseOrderInfoService.selectPurchaseOrderInfoByOrderId(inboundOrderInfo.getOrderId());
+            ThrowUtils.throwIf(StringUtils.isNull(purchaseOrderInfo), "关联的订单不存在");
+            // 判断订单是否已入库
+            ThrowUtils.throwIf(purchaseOrderInfo.getOrderStatus().equals(WarehouseOrderStatusEnum.WAREHOUSE_ORDER_STATUS_1.getValue()), "该订单已入库");
+            // 判断订单是否为已下单状态
+            ThrowUtils.throwIf(!purchaseOrderInfo.getOrderStatus().equals(WarehouseOrderStatusEnum.WAREHOUSE_ORDER_STATUS_0.getValue()), "只能为已下单状态的订单创建入库单");
+            // 判断订单审核状态是否为已通过
+            ThrowUtils.throwIf(!purchaseOrderInfo.getApplicantStatus().equals(WarehouseOrderApplicantStatusEnum.WAREHOUSE_ORDER_APPLICANT_STATUS_1.getValue()), "只能为审核通过的订单创建入库单");
+        }
+
+        // 校验明细
+        validateInboundOrderDetailInfo(inboundOrderInfo);
+
         int rows = inboundOrderInfoMapper.insertInboundOrderInfo(inboundOrderInfo);
         insertInboundOrderDetailInfo(inboundOrderInfo);
         return rows;
+    }
+
+    /**
+     * 校验入库明细
+     */
+    private void validateInboundOrderDetailInfo(InboundOrderInfo inboundOrderInfo) {
+        List<InboundOrderDetailInfo> detailList = inboundOrderInfo.getInboundOrderDetailInfoList();
+        ThrowUtils.throwIf(StringUtils.isNull(detailList) || detailList.isEmpty(), "入库明细不能为空");
+
+        for (InboundOrderDetailInfo detail : detailList) {
+            ThrowUtils.throwIf(StringUtils.isEmpty(detail.getPartsCode()), "备件编号不能为空");
+            ThrowUtils.throwIf(StringUtils.isNull(detail.getInboundQuantity()), "入库数量不能为空");
+            ThrowUtils.throwIf(StringUtils.isNull(detail.getInboundQuantity()) || detail.getInboundQuantity() <= 0, "入库数量必须大于0");
+            ThrowUtils.throwIf(StringUtils.isEmpty(detail.getBatchNo()), "批次号不能为空");
+            ThrowUtils.throwIf(StringUtils.isNull(detail.getLocationId()), "库位不能为空");
+            ThrowUtils.throwIf(StringUtils.isEmpty(detail.getQualityStatus()), "质量状态不能为空");
+
+            // 判断库位是否存在
+            LocationInfo locationInfo = locationInfoService.selectLocationInfoById(detail.getLocationId());
+            ThrowUtils.throwIf(StringUtils.isNull(locationInfo), "库位不存在");
+        }
     }
 
     /**
@@ -89,9 +214,83 @@ public class InboundOrderInfoServiceImpl extends ServiceImpl<InboundOrderInfoMap
     @Override
     public int updateInboundOrderInfo(InboundOrderInfo inboundOrderInfo)
     {
+        // 判断入库单是否存在
+        InboundOrderInfo existingInboundOrder = inboundOrderInfoMapper.selectInboundOrderInfoById(inboundOrderInfo.getId());
+        ThrowUtils.throwIf(StringUtils.isNull(existingInboundOrder), "入库单不存在");
+
+        // 判断入库单是否已审核通过
+        ThrowUtils.throwIf(existingInboundOrder.getReviewStatus().equals(WarehouseOrderApplicantStatusEnum.WAREHOUSE_ORDER_APPLICANT_STATUS_1.getValue()), "已审核通过的入库单不可修改");
+
+        // 校验入库单号是否存在（排除自身）
+        InboundOrderInfo inboundOrderInfoByNo = inboundOrderInfoMapper.selectInboundOrderInfoByNo(inboundOrderInfo.getInboundNo());
+        ThrowUtils.throwIf(StringUtils.isNotNull(inboundOrderInfoByNo)
+                           && !inboundOrderInfoByNo.getId().equals(inboundOrderInfo.getId()),
+                "入库单号已存在");
+
+        // 判断仓库是否存在
+        if (StringUtils.isNotNull(inboundOrderInfo.getWarehouseId())) {
+            WarehouseInfo warehouseInfo = warehouseInfoService.selectWarehouseInfoById(inboundOrderInfo.getWarehouseId());
+            ThrowUtils.throwIf(StringUtils.isNull(warehouseInfo), "仓库不存在");
+        }
+
+        // 判断供应商是否存在
+        if (StringUtils.isNotNull(inboundOrderInfo.getSupplierId())) {
+            SupplierInfo supplierInfo = supplierInfoService.selectSupplierInfoById(inboundOrderInfo.getSupplierId());
+            ThrowUtils.throwIf(StringUtils.isNull(supplierInfo), "供应商不存在");
+        }
+        inboundOrderInfo.setCreateBy(inboundOrderInfoByNo.getCreateBy());
+        inboundOrderInfo.setCreateTime(inboundOrderInfoByNo.getCreateTime());
         inboundOrderInfo.setUpdateTime(DateUtils.getNowDate());
         inboundOrderInfoMapper.deleteInboundOrderDetailInfoByInboundId(inboundOrderInfo.getId());
+
+        // 校验明细
+        validateInboundOrderDetailInfo(inboundOrderInfo);
+
         insertInboundOrderDetailInfo(inboundOrderInfo);
+        return inboundOrderInfoMapper.updateInboundOrderInfo(inboundOrderInfo);
+    }
+
+    /**
+     * 审核入库单
+     */
+    @Override
+    @Transactional
+    public int auditInboundOrderInfo(InboundOrderInfo inboundOrderInfo) {
+        // 判断入库单是否存在
+        InboundOrderInfo existingInboundOrder = inboundOrderInfoMapper.selectInboundOrderInfoById(inboundOrderInfo.getId());
+        ThrowUtils.throwIf(StringUtils.isNull(existingInboundOrder), "入库单不存在");
+
+        // 判断入库单是否已审核
+        ThrowUtils.throwIf(WarehouseOrderApplicantStatusEnum.WAREHOUSE_ORDER_APPLICANT_STATUS_1.getValue().equals(existingInboundOrder.getReviewStatus()), "入库单已审核通过，不可重复审核");
+
+        // 校验明细
+        validateInboundOrderDetailInfo(inboundOrderInfo);
+
+        Date nowDate = DateUtils.getNowDate();
+        // 如果审核状态发生变化，设置审核人和审核时间
+        if (!inboundOrderInfo.getReviewStatus().equals(existingInboundOrder.getReviewStatus())) {
+            inboundOrderInfo.setReviewerId(SecurityUtils.getUserId());
+            inboundOrderInfo.setReviewTime(nowDate);
+        }
+
+        // 如果审核通过，同时更新入库状态为已入库
+        if (WarehouseOrderApplicantStatusEnum.WAREHOUSE_ORDER_APPLICANT_STATUS_1.getValue().equals(inboundOrderInfo.getReviewStatus())) {
+            inboundOrderInfo.setInboundStatus(WarehouseInboundStatusEnum.WAREHOUSE_INBOUND_STATUS_1.getValue());
+
+            // 如果有关联订单，同步更新订单状态为已入库
+            if (StringUtils.isNotNull(existingInboundOrder.getOrderId())) {
+                PurchaseOrderInfo purchaseOrderInfo = new PurchaseOrderInfo();
+                purchaseOrderInfo.setOrderId(existingInboundOrder.getOrderId());
+                purchaseOrderInfo.setOrderStatus(WarehouseOrderStatusEnum.WAREHOUSE_ORDER_STATUS_1.getValue());
+                purchaseOrderInfoService.updateById(purchaseOrderInfo);
+            }
+        }
+
+        // 删除原有明细并插入新明细
+        inboundOrderInfoMapper.deleteInboundOrderDetailInfoByInboundId(inboundOrderInfo.getId());
+        insertInboundOrderDetailInfo(inboundOrderInfo);
+
+        inboundOrderInfo.setUpdateTime(nowDate);
         return inboundOrderInfoMapper.updateInboundOrderInfo(inboundOrderInfo);
     }
 
@@ -105,6 +304,12 @@ public class InboundOrderInfoServiceImpl extends ServiceImpl<InboundOrderInfoMap
     @Override
     public int deleteInboundOrderInfoByIds(Long[] ids)
     {
+        for (Long id : ids) {
+            InboundOrderInfo existingInboundOrder = inboundOrderInfoMapper.selectInboundOrderInfoById(id);
+            ThrowUtils.throwIf(StringUtils.isNull(existingInboundOrder), "入库单不存在");
+            // 判断入库单是否已审核通过
+            ThrowUtils.throwIf(existingInboundOrder.getReviewStatus().equals(WarehouseOrderApplicantStatusEnum.WAREHOUSE_ORDER_APPLICANT_STATUS_1.getValue()), "已审核通过的入库单不可删除");
+        }
         inboundOrderInfoMapper.deleteInboundOrderDetailInfoByInboundIds(ids);
         return inboundOrderInfoMapper.deleteInboundOrderInfoByIds(ids);
     }
@@ -119,6 +324,10 @@ public class InboundOrderInfoServiceImpl extends ServiceImpl<InboundOrderInfoMap
     @Override
     public int deleteInboundOrderInfoById(Long id)
     {
+        InboundOrderInfo existingInboundOrder = inboundOrderInfoMapper.selectInboundOrderInfoById(id);
+        ThrowUtils.throwIf(StringUtils.isNull(existingInboundOrder), "入库单不存在");
+        // 判断入库单是否已审核通过
+        ThrowUtils.throwIf(existingInboundOrder.getReviewStatus().equals(WarehouseOrderApplicantStatusEnum.WAREHOUSE_ORDER_APPLICANT_STATUS_1.getValue()), "已审核通过的入库单不可删除");
         inboundOrderInfoMapper.deleteInboundOrderDetailInfoByInboundId(id);
         return inboundOrderInfoMapper.deleteInboundOrderInfoById(id);
     }
@@ -138,9 +347,21 @@ public class InboundOrderInfoServiceImpl extends ServiceImpl<InboundOrderInfoMap
             for (InboundOrderDetailInfo inboundOrderDetailInfo : inboundOrderDetailInfoList)
             {
                 inboundOrderDetailInfo.setInboundId(id);
+                if (StringUtils.isNotEmpty(inboundOrderInfo.getCreateBy())) {
+                    inboundOrderDetailInfo.setCreateBy(inboundOrderInfo.getCreateBy());
+                }
+                if (StringUtils.isNotEmpty(inboundOrderInfo.getUpdateBy())) {
+                    inboundOrderDetailInfo.setUpdateBy(inboundOrderInfo.getUpdateBy());
+                }
+                if (StringUtils.isNotNull(inboundOrderInfo.getCreateTime())) {
+                    inboundOrderDetailInfo.setCreateTime(inboundOrderInfo.getCreateTime());
+                }
+                if (StringUtils.isNotNull(inboundOrderInfo.getUpdateTime())) {
+                    inboundOrderDetailInfo.setUpdateTime(inboundOrderInfo.getUpdateTime());
+                }
                 list.add(inboundOrderDetailInfo);
             }
-            if (list.size() > 0)
+            if (!list.isEmpty())
             {
                 inboundOrderInfoMapper.batchInboundOrderDetailInfo(list);
             }

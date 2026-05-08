@@ -75,6 +75,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         where id = #{id}
     </select>
 
+    <select id="selectInboundOrderInfoByNo" parameterType="String" resultMap="InboundOrderInfoResult">
+        select id, inbound_no, inbound_type, warehouse_id, order_id, supplier_id, inbound_date, inbound_status, operator_id, reviewer_id, review_status, review_time, review_remark, create_by, create_time, update_by, update_time, remark
+        from tb_inbound_order_info
+        where inbound_no = #{inboundNo}
+    </select>
+
     <select id="selectInboundOrderDetailInfoList" resultMap="InboundOrderDetailInfoResult">
         select id, inbound_id, parts_code, inbound_quantity, batch_no, warehouse_id, location_id, quality_status, production_date, expiry_date, unit_price, create_by, create_time, update_by, update_time, remark
         from tb_inbound_order_detail_info

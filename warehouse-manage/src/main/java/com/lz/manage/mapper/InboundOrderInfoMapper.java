@@ -80,9 +80,17 @@ public interface InboundOrderInfoMapper extends BaseMapper<InboundOrderInfo>
 
     /**
      * 通过入库单主键删除入库明细信息
-     * 
+     *
      * @param id 入库单ID
      * @return 结果
      */
     public int deleteInboundOrderDetailInfoByInboundId(Long id);
+
+    /**
+     * 通过入库单号查询入库单
+     *
+     * @param inboundNo 入库单号
+     * @return 入库单
+     */
+    public InboundOrderInfo selectInboundOrderInfoByNo(String inboundNo);
 }

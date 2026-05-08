@@ -61,7 +61,7 @@ public class LocationInfo implements Serializable
 
     /** 出库总数 */
     @Excel(name = "出库总数")
-    private Long outbountQuantiy;
+    private Long outboundQuantity;
 
     /** 状态 */
     @Excel(name = "状态", dictType = "warehouse_common_status")

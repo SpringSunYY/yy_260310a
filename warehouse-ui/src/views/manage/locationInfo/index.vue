@@ -134,7 +134,7 @@
               </el-table-column>
                     <el-table-column label="容量" align="center" prop="capacity" v-if="columns[6].visible" :show-overflow-tooltip="true"/>
                     <el-table-column label="入库总数" align="center" prop="inboundQuantity" v-if="columns[7].visible" :show-overflow-tooltip="true"/>
-                    <el-table-column label="出库总数" align="center" prop="outbountQuantiy" v-if="columns[8].visible" :show-overflow-tooltip="true"/>
+                    <el-table-column label="出库总数" align="center" prop="outboundQuantity" v-if="columns[8].visible" :show-overflow-tooltip="true"/>
                 <el-table-column label="状态" align="center" prop="locationStatus" v-if="columns[9].visible">
                 <template #default="scope">
                       <dict-tag :options="warehouse_common_status" :value="scope.row.locationStatus"/>
@@ -200,8 +200,8 @@
                         <el-form-item label="入库总数" prop="inboundQuantity">
                           <el-input v-model="form.inboundQuantity" placeholder="请输入入库总数" />
                         </el-form-item>
-                        <el-form-item label="出库总数" prop="outbountQuantiy">
-                          <el-input v-model="form.outbountQuantiy" placeholder="请输入出库总数" />
+                        <el-form-item label="出库总数" prop="outboundQuantity">
+                          <el-input v-model="form.outboundQuantity" placeholder="请输入出库总数" />
                         </el-form-item>
                         <el-form-item label="状态" prop="locationStatus">
                           <el-select v-model="form.locationStatus" placeholder="请选择状态">
@@ -271,7 +271,7 @@
                     inboundQuantity: [
                 { required: true, message: "入库总数不能为空", trigger: "blur" }
               ],
-                    outbountQuantiy: [
+                    outboundQuantity: [
                 { required: true, message: "出库总数不能为空", trigger: "blur" }
               ],
                     locationStatus: [
@@ -347,7 +347,7 @@
                     level: null,
                     capacity: null,
                     inboundQuantity: null,
-                    outbountQuantiy: null,
+                    outboundQuantity: null,
                     locationStatus: null,
                     createBy: null,
                     createTime: null,

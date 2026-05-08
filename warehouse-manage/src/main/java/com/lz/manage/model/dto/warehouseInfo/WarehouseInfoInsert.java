@@ -43,7 +43,7 @@ public class WarehouseInfoInsert implements Serializable
     private Long inboundQuantity;
 
     /** 出库总数 */
-    private Long outbountQuantiy;
+    private Long outboundQuantity;
 
     /** 联系电话 */
     private String contactPhone;

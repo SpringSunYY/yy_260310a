@@ -14,7 +14,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="userId"    column="user_id"    />
         <result property="totalCapacity"    column="total_capacity"    />
         <result property="inboundQuantity"    column="inbound_quantity"    />
-        <result property="outbountQuantiy"    column="outbount_quantiy"    />
+        <result property="outboundQuantity"    column="outbound_quantity"    />
         <result property="contactPhone"    column="contact_phone"    />
         <result property="warehouseStatus"    column="warehouse_status"    />
         <result property="createBy"    column="create_by"    />
@@ -25,7 +25,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectWarehouseInfoVo">
-        select id, warehouse_code, warehouse_name, warehouse_type, location, area, user_id, total_capacity, inbound_quantity, outbount_quantiy, contact_phone, warehouse_status, create_by, create_time, update_by, update_time, remark from tb_warehouse_info
+        select id, warehouse_code, warehouse_name, warehouse_type, location, area, user_id, total_capacity, inbound_quantity, outbound_quantity, contact_phone, warehouse_status, create_by, create_time, update_by, update_time, remark from tb_warehouse_info
     </sql>
 
     <select id="selectWarehouseInfoList" parameterType="WarehouseInfo" resultMap="WarehouseInfoResult">
@@ -58,7 +58,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="userId != null">user_id,</if>
             <if test="totalCapacity != null">total_capacity,</if>
             <if test="inboundQuantity != null">inbound_quantity,</if>
-            <if test="outbountQuantiy != null">outbount_quantiy,</if>
+            <if test="outboundQuantity != null">outbound_quantity,</if>
             <if test="contactPhone != null">contact_phone,</if>
             <if test="warehouseStatus != null and warehouseStatus != ''">warehouse_status,</if>
             <if test="createBy != null and createBy != ''">create_by,</if>
@@ -76,7 +76,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="userId != null">#{userId},</if>
             <if test="totalCapacity != null">#{totalCapacity},</if>
             <if test="inboundQuantity != null">#{inboundQuantity},</if>
-            <if test="outbountQuantiy != null">#{outbountQuantiy},</if>
+            <if test="outboundQuantity != null">#{outboundQuantity},</if>
             <if test="contactPhone != null">#{contactPhone},</if>
             <if test="warehouseStatus != null and warehouseStatus != ''">#{warehouseStatus},</if>
             <if test="createBy != null and createBy != ''">#{createBy},</if>
@@ -98,7 +98,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="userId != null">user_id = #{userId},</if>
             <if test="totalCapacity != null">total_capacity = #{totalCapacity},</if>
             <if test="inboundQuantity != null">inbound_quantity = #{inboundQuantity},</if>
-            <if test="outbountQuantiy != null">outbount_quantiy = #{outbountQuantiy},</if>
+            <if test="outboundQuantity != null">outbound_quantity = #{outboundQuantity},</if>
             <if test="contactPhone != null">contact_phone = #{contactPhone},</if>
             <if test="warehouseStatus != null and warehouseStatus != ''">warehouse_status = #{warehouseStatus},</if>
             <if test="createBy != null and createBy != ''">create_by = #{createBy},</if>

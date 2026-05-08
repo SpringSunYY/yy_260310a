@@ -1,20 +1,21 @@
 package com.lz.manage.mapper;
 
-import java.util.List;
-import com.lz.manage.model.domain.WarehouseInfo;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.lz.manage.model.domain.WarehouseInfo;
+
+import java.util.List;
 
 /**
  * 仓库Mapper接口
- * 
+ *
  * @author YY
  * @date 2026-05-08
  */
-public interface WarehouseInfoMapper extends BaseMapper<WarehouseInfo>
-{
+public interface WarehouseInfoMapper extends BaseMapper<WarehouseInfo> {
     /**
      * 查询仓库
-     * 
+     *
      * @param id 仓库主键
      * @return 仓库
      */
@@ -22,7 +23,7 @@ public interface WarehouseInfoMapper extends BaseMapper<WarehouseInfo>
 
     /**
      * 查询仓库列表
-     * 
+     *
      * @param warehouseInfo 仓库
      * @return 仓库集合
      */
@@ -30,7 +31,7 @@ public interface WarehouseInfoMapper extends BaseMapper<WarehouseInfo>
 
     /**
      * 新增仓库
-     * 
+     *
      * @param warehouseInfo 仓库
      * @return 结果
      */
@@ -38,7 +39,7 @@ public interface WarehouseInfoMapper extends BaseMapper<WarehouseInfo>
 
     /**
      * 修改仓库
-     * 
+     *
      * @param warehouseInfo 仓库
      * @return 结果
      */
@@ -46,7 +47,7 @@ public interface WarehouseInfoMapper extends BaseMapper<WarehouseInfo>
 
     /**
      * 删除仓库
-     * 
+     *
      * @param id 仓库主键
      * @return 结果
      */
@@ -54,9 +55,13 @@ public interface WarehouseInfoMapper extends BaseMapper<WarehouseInfo>
 
     /**
      * 批量删除仓库
-     * 
+     *
      * @param ids 需要删除的数据主键集合
      * @return 结果
      */
     public int deleteWarehouseInfoByIds(Long[] ids);
+
+    default WarehouseInfo selectWarehouseInfoByCode(String warehouseCode) {
+        return selectOne(new LambdaQueryWrapper<WarehouseInfo>().eq(WarehouseInfo::getWarehouseCode, warehouseCode));
+    }
 }

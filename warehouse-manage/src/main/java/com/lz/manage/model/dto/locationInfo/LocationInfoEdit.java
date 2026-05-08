@@ -43,7 +43,7 @@ public class LocationInfoEdit implements Serializable
     private Long inboundQuantity;
 
     /** 出库总数 */
-    private Long outbountQuantiy;
+    private Long outboundQuantity;
 
     /** 状态 */
     private String locationStatus;

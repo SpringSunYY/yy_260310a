@@ -29,6 +29,11 @@
             <version>${mybatis-plus.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.lz</groupId>
+            <artifactId>warehouse-system</artifactId>
+        </dependency>
+
     </dependencies>
 
 </project>

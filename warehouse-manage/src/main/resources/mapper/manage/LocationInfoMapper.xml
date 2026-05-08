@@ -13,7 +13,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="level"    column="level"    />
         <result property="capacity"    column="capacity"    />
         <result property="inboundQuantity"    column="inbound_quantity"    />
-        <result property="outbountQuantiy"    column="outbount_quantiy"    />
+        <result property="outboundQuantity"    column="outbound_quantity"    />
         <result property="locationStatus"    column="location_status"    />
         <result property="createBy"    column="create_by"    />
         <result property="createTime"    column="create_time"    />
@@ -23,7 +23,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectLocationInfoVo">
-        select id, warehouse_id, location_code, location_name, parent_id, level, capacity, inbound_quantity, outbount_quantiy, location_status, create_by, create_time, update_by, update_time, remark from tb_location_info
+        select id, warehouse_id, location_code, location_name, parent_id, level, capacity, inbound_quantity, outbound_quantity, location_status, create_by, create_time, update_by, update_time, remark from tb_location_info
     </sql>
 
     <select id="selectLocationInfoList" parameterType="LocationInfo" resultMap="LocationInfoResult">
@@ -56,7 +56,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="level != null">level,</if>
             <if test="capacity != null">capacity,</if>
             <if test="inboundQuantity != null">inbound_quantity,</if>
-            <if test="outbountQuantiy != null">outbount_quantiy,</if>
+            <if test="outboundQuantity != null">outbound_quantity,</if>
             <if test="locationStatus != null and locationStatus != ''">location_status,</if>
             <if test="createBy != null and createBy != ''">create_by,</if>
             <if test="createTime != null">create_time,</if>
@@ -72,7 +72,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="level != null">#{level},</if>
             <if test="capacity != null">#{capacity},</if>
             <if test="inboundQuantity != null">#{inboundQuantity},</if>
-            <if test="outbountQuantiy != null">#{outbountQuantiy},</if>
+            <if test="outboundQuantity != null">#{outboundQuantity},</if>
             <if test="locationStatus != null and locationStatus != ''">#{locationStatus},</if>
             <if test="createBy != null and createBy != ''">#{createBy},</if>
             <if test="createTime != null">#{createTime},</if>
@@ -92,7 +92,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="level != null">level = #{level},</if>
             <if test="capacity != null">capacity = #{capacity},</if>
             <if test="inboundQuantity != null">inbound_quantity = #{inboundQuantity},</if>
-            <if test="outbountQuantiy != null">outbount_quantiy = #{outbountQuantiy},</if>
+            <if test="outboundQuantity != null">outbound_quantity = #{outboundQuantity},</if>
             <if test="locationStatus != null and locationStatus != ''">location_status = #{locationStatus},</if>
             <if test="createBy != null and createBy != ''">create_by = #{createBy},</if>
             <if test="createTime != null">create_time = #{createTime},</if>

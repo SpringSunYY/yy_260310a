@@ -52,8 +52,11 @@ public class WarehouseInfo implements Serializable
     private BigDecimal area;
 
     /** 仓库管理员 */
-    @Excel(name = "仓库管理员")
+    @Excel(name = "仓库管理员",type = Excel.Type.IMPORT)
     private Long userId;
+    @TableField(exist = false)
+    @Excel(name = "仓库管理员",type = Excel.Type.EXPORT)
+    private String userName;
 
     /** 总容量 */
     @Excel(name = "总容量")
@@ -65,7 +68,7 @@ public class WarehouseInfo implements Serializable
 
     /** 出库总数 */
     @Excel(name = "出库总数")
-    private Long outbountQuantiy;
+    private Long outboundQuantity;
 
     /** 联系电话 */
     @Excel(name = "联系电话")
@@ -80,8 +83,8 @@ public class WarehouseInfo implements Serializable
     private String createBy;
 
     /** 创建时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    @Excel(name = "创建时间", width = 30, dateFormat = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Excel(name = "创建时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 
     /** 更新人 */
@@ -89,8 +92,8 @@ public class WarehouseInfo implements Serializable
     private String updateBy;
 
     /** 更新时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    @Excel(name = "更新时间", width = 30, dateFormat = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Excel(name = "更新时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss")
     private Date updateTime;
 
     /** 备注 */

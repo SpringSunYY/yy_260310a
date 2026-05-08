@@ -1,23 +1,21 @@
 package com.lz.manage.service.impl;
 
-import java.util.*;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.stream.Collectors;
-import com.lz.common.utils.StringUtils;
-import java.util.Date;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.lz.common.utils.DateUtils;
-import jakarta.annotation.Resource;
-import org.springframework.stereotype.Service;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lz.common.utils.DateUtils;
+import com.lz.common.utils.SecurityUtils;
+import com.lz.common.utils.StringUtils;
+import com.lz.common.utils.ThrowUtils;
 import com.lz.manage.mapper.SupplierInfoMapper;
 import com.lz.manage.model.domain.SupplierInfo;
-import com.lz.manage.service.ISupplierInfoService;
 import com.lz.manage.model.dto.supplierInfo.SupplierInfoQuery;
 import com.lz.manage.model.vo.supplierInfo.SupplierInfoVo;
+import com.lz.manage.service.ISupplierInfoService;
+import jakarta.annotation.Resource;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 供应商信息Service业务层处理
@@ -26,13 +24,13 @@ import com.lz.manage.model.vo.supplierInfo.SupplierInfoVo;
  * @date 2026-05-08
  */
 @Service
-public class SupplierInfoServiceImpl extends ServiceImpl<SupplierInfoMapper, SupplierInfo> implements ISupplierInfoService
-{
+public class SupplierInfoServiceImpl extends ServiceImpl<SupplierInfoMapper, SupplierInfo> implements ISupplierInfoService {
 
     @Resource
     private SupplierInfoMapper supplierInfoMapper;
 
     //region mybatis代码
+
     /**
      * 查询供应商信息
      *
@@ -40,8 +38,7 @@ public class SupplierInfoServiceImpl extends ServiceImpl<SupplierInfoMapper, Sup
      * @return 供应商信息
      */
     @Override
-    public SupplierInfo selectSupplierInfoById(Long id)
-    {
+    public SupplierInfo selectSupplierInfoById(Long id) {
         return supplierInfoMapper.selectSupplierInfoById(id);
     }
 
@@ -52,8 +49,7 @@ public class SupplierInfoServiceImpl extends ServiceImpl<SupplierInfoMapper, Sup
      * @return 供应商信息
      */
     @Override
-    public List<SupplierInfo> selectSupplierInfoList(SupplierInfo supplierInfo)
-    {
+    public List<SupplierInfo> selectSupplierInfoList(SupplierInfo supplierInfo) {
         return supplierInfoMapper.selectSupplierInfoList(supplierInfo);
     }
 
@@ -64,8 +60,12 @@ public class SupplierInfoServiceImpl extends ServiceImpl<SupplierInfoMapper, Sup
      * @return 结果
      */
     @Override
-    public int insertSupplierInfo(SupplierInfo supplierInfo)
-    {
+    public int insertSupplierInfo(SupplierInfo supplierInfo) {
+        //根据编号查询是否存在
+        SupplierInfo supplierInfoByCode = supplierInfoMapper.selectSupplierInfoByCode(supplierInfo.getSupplierCode());
+        ThrowUtils.throwIf(StringUtils.isNotNull(supplierInfoByCode),
+                "供应商编号已存在");
+        supplierInfo.setCreateBy(SecurityUtils.getUsername());
         supplierInfo.setCreateTime(DateUtils.getNowDate());
         return supplierInfoMapper.insertSupplierInfo(supplierInfo);
     }
@@ -77,8 +77,13 @@ public class SupplierInfoServiceImpl extends ServiceImpl<SupplierInfoMapper, Sup
      * @return 结果
      */
     @Override
-    public int updateSupplierInfo(SupplierInfo supplierInfo)
-    {
+    public int updateSupplierInfo(SupplierInfo supplierInfo) {
+        //根据编号查询是否存在
+        SupplierInfo supplierInfoByCode = supplierInfoMapper.selectSupplierInfoByCode(supplierInfo.getSupplierCode());
+        ThrowUtils.throwIf(StringUtils.isNotNull(supplierInfoByCode)
+                           && !supplierInfoByCode.getId().equals(supplierInfo.getId()),
+                "供应商编号已存在");
+        supplierInfo.setUpdateBy(SecurityUtils.getUsername());
         supplierInfo.setUpdateTime(DateUtils.getNowDate());
         return supplierInfoMapper.updateSupplierInfo(supplierInfo);
     }
@@ -90,8 +95,7 @@ public class SupplierInfoServiceImpl extends ServiceImpl<SupplierInfoMapper, Sup
      * @return 结果
      */
     @Override
-    public int deleteSupplierInfoByIds(Long[] ids)
-    {
+    public int deleteSupplierInfoByIds(Long[] ids) {
         return supplierInfoMapper.deleteSupplierInfoByIds(ids);
     }
 
@@ -102,13 +106,13 @@ public class SupplierInfoServiceImpl extends ServiceImpl<SupplierInfoMapper, Sup
      * @return 结果
      */
     @Override
-    public int deleteSupplierInfoById(Long id)
-    {
+    public int deleteSupplierInfoById(Long id) {
         return supplierInfoMapper.deleteSupplierInfoById(id);
     }
+
     //endregion
     @Override
-    public QueryWrapper<SupplierInfo> getQueryWrapper(SupplierInfoQuery supplierInfoQuery){
+    public QueryWrapper<SupplierInfo> getQueryWrapper(SupplierInfoQuery supplierInfoQuery) {
         QueryWrapper<SupplierInfo> queryWrapper = new QueryWrapper<>();
         //如果不使用params可以删除
         Map<String, Object> params = supplierInfoQuery.getParams();
@@ -116,25 +120,25 @@ public class SupplierInfoServiceImpl extends ServiceImpl<SupplierInfoMapper, Sup
             params = new HashMap<>();
         }
         Long id = supplierInfoQuery.getId();
-        queryWrapper.eq( StringUtils.isNotNull(id),"id",id);
+        queryWrapper.eq(StringUtils.isNotNull(id), "id", id);
 
         String supplierCode = supplierInfoQuery.getSupplierCode();
-        queryWrapper.eq(StringUtils.isNotEmpty(supplierCode) ,"supplier_code",supplierCode);
+        queryWrapper.eq(StringUtils.isNotEmpty(supplierCode), "supplier_code", supplierCode);
 
         String supplierName = supplierInfoQuery.getSupplierName();
-        queryWrapper.like(StringUtils.isNotEmpty(supplierName) ,"supplier_name",supplierName);
+        queryWrapper.like(StringUtils.isNotEmpty(supplierName), "supplier_name", supplierName);
 
         String creditLevel = supplierInfoQuery.getCreditLevel();
-        queryWrapper.eq(StringUtils.isNotEmpty(creditLevel) ,"credit_level",creditLevel);
+        queryWrapper.eq(StringUtils.isNotEmpty(creditLevel), "credit_level", creditLevel);
 
         String supplierStatus = supplierInfoQuery.getSupplierStatus();
-        queryWrapper.eq(StringUtils.isNotEmpty(supplierStatus) ,"supplier_status",supplierStatus);
+        queryWrapper.eq(StringUtils.isNotEmpty(supplierStatus), "supplier_status", supplierStatus);
 
         String createBy = supplierInfoQuery.getCreateBy();
-        queryWrapper.like(StringUtils.isNotEmpty(createBy) ,"create_by",createBy);
+        queryWrapper.like(StringUtils.isNotEmpty(createBy), "create_by", createBy);
 
         Date createTime = supplierInfoQuery.getCreateTime();
-        queryWrapper.between(StringUtils.isNotNull(params.get("beginCreateTime"))&&StringUtils.isNotNull(params.get("endCreateTime")),"create_time",params.get("beginCreateTime"),params.get("endCreateTime"));
+        queryWrapper.between(StringUtils.isNotNull(params.get("beginCreateTime")) && StringUtils.isNotNull(params.get("endCreateTime")), "create_time", params.get("beginCreateTime"), params.get("endCreateTime"));
 
         return queryWrapper;
     }

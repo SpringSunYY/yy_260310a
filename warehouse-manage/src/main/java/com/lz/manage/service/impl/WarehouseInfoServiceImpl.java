@@ -60,7 +60,7 @@ public class WarehouseInfoServiceImpl extends ServiceImpl<WarehouseInfoMapper, W
             if (StringUtils.isNotNull(info.getUserId())) {
                 SysUser sysUser = sysUserService.selectUserById(info.getUserId());
                 if (StringUtils.isNotNull(sysUser)) {
-                    info.setUserName(sysUser.getUserName());
+                    info.setUserName(sysUser.getNickName());
                 }
             }
         }

@@ -35,6 +35,7 @@ public class PurchaseOrderInfoVo implements Serializable {
      * 供应商
      */
     private Long supplierId;
+    private String supplierName;
 
     /**
      * 订单日期
@@ -62,6 +63,7 @@ public class PurchaseOrderInfoVo implements Serializable {
      * 申请人
      */
     private Long applicantId;
+    private String applicantName;
 
     /**
      * 审批状态
@@ -72,6 +74,7 @@ public class PurchaseOrderInfoVo implements Serializable {
      * 审批人
      */
     private Long approverId;
+    private String approverName;
 
     /**
      * 审批时间

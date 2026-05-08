@@ -2,6 +2,7 @@ package com.lz.manage.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lz.common.core.domain.entity.SysUser;
 import com.lz.common.utils.DateUtils;
 import com.lz.common.utils.SecurityUtils;
 import com.lz.common.utils.StringUtils;
@@ -16,6 +17,7 @@ import com.lz.manage.model.dto.purchaseOrderInfo.PurchaseOrderInfoQuery;
 import com.lz.manage.model.vo.purchaseOrderInfo.PurchaseOrderInfoVo;
 import com.lz.manage.service.IPurchaseOrderInfoService;
 import com.lz.manage.service.ISupplierInfoService;
+import com.lz.system.service.ISysUserService;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +41,9 @@ public class PurchaseOrderInfoServiceImpl extends ServiceImpl<PurchaseOrderInfoM
     @Resource
     private ISupplierInfoService supplierInfoService;
 
+    @Resource
+    private ISysUserService sysUserService;
+
     //region mybatis代码
 
     /**
@@ -60,7 +65,26 @@ public class PurchaseOrderInfoServiceImpl extends ServiceImpl<PurchaseOrderInfoM
      */
     @Override
     public List<PurchaseOrderInfo> selectPurchaseOrderInfoList(PurchaseOrderInfo purchaseOrderInfo) {
-        return purchaseOrderInfoMapper.selectPurchaseOrderInfoList(purchaseOrderInfo);
+        List<PurchaseOrderInfo> purchaseOrderInfos = purchaseOrderInfoMapper.selectPurchaseOrderInfoList(purchaseOrderInfo);
+        for (PurchaseOrderInfo info : purchaseOrderInfos) {
+            SupplierInfo supplierInfo = supplierInfoService.selectSupplierInfoById(info.getSupplierId());
+            if (StringUtils.isNotNull(supplierInfo)) {
+                info.setSupplierName(supplierInfo.getSupplierName());
+            }
+            if (StringUtils.isNotNull(info.getApproverId())) {
+                SysUser sysUser = sysUserService.selectUserById(info.getApproverId());
+                if (StringUtils.isNotNull(sysUser)) {
+                    info.setApproverName(sysUser.getNickName());
+                }
+            }
+            if (StringUtils.isNotNull(info.getApplicantId())) {
+                SysUser sysUser = sysUserService.selectUserById(info.getApplicantId());
+                if (StringUtils.isNotNull(sysUser)) {
+                    info.setApplicantName(sysUser.getNickName());
+                }
+            }
+        }
+        return purchaseOrderInfos;
     }
 
     /**
@@ -130,6 +154,10 @@ public class PurchaseOrderInfoServiceImpl extends ServiceImpl<PurchaseOrderInfoM
         if (!purchaseOrderInfo.getApplicantStatus().equals(purchaseOrderInfoByNo.getApplicantStatus())) {
             purchaseOrderInfo.setApprovalTime(nowDate);
             purchaseOrderInfo.setApproverId(SecurityUtils.getUserId());
+        }
+        //如果是拒绝，直接更新状态为取消
+        if (purchaseOrderInfo.getApplicantStatus().equals(WarehouseOrderApplicantStatusEnum.WAREHOUSE_ORDER_APPLICANT_STATUS_2.getValue())) {
+            purchaseOrderInfo.setOrderStatus(WarehouseOrderStatusEnum.WAREHOUSE_ORDER_STATUS_2.getValue());
         }
         purchaseOrderInfo.setUpdateTime(nowDate);
         purchaseOrderInfoMapper.deletePurchaseOrderDetailInfoByOrderId(purchaseOrderInfo.getOrderId());

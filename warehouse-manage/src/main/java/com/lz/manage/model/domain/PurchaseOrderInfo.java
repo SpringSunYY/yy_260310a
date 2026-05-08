@@ -1,21 +1,20 @@
 package com.lz.manage.model.domain;
 
-import java.io.Serializable;
-import java.util.Map;
-import java.util.Date;
-import java.math.BigDecimal;
-import java.util.List;
-import com.lz.manage.model.domain.PurchaseOrderDetailInfo;
-import java.util.Date;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
-import com.lz.common.annotation.Excel;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.lz.common.annotation.Excel;
+import lombok.Data;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
 /**
  * 采购订单对象 tb_purchase_order_info
  *
@@ -24,89 +23,135 @@ import com.fasterxml.jackson.annotation.JsonInclude;
  */
 @TableName("tb_purchase_order_info")
 @Data
-public class PurchaseOrderInfo implements Serializable
-{
+public class PurchaseOrderInfo implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /** 编号 */
+    /**
+     * 编号
+     */
     @Excel(name = "编号")
     @TableId(value = "order_id", type = IdType.ASSIGN_ID)
     private Long orderId;
 
-    /** 采购订单号 */
+    /**
+     * 采购订单号
+     */
     @Excel(name = "采购订单号")
     private String orderNo;
 
-    /** 供应商 */
-    @Excel(name = "供应商")
+    /**
+     * 供应商
+     */
+    @Excel(name = "供应商", type = Excel.Type.IMPORT)
     private Long supplierId;
+    @TableField(exist = false)
+    @Excel(name = "供应商", type = Excel.Type.EXPORT)
+    private String supplierName;
 
-    /** 订单日期 */
+    /**
+     * 订单日期
+     */
     @JsonFormat(pattern = "yyyy-MM-dd")
     @Excel(name = "订单日期", width = 30, dateFormat = "yyyy-MM-dd")
     private Date orderDate;
 
-    /** 预计到货日期 */
+    /**
+     * 预计到货日期
+     */
     @JsonFormat(pattern = "yyyy-MM-dd")
     @Excel(name = "预计到货日期", width = 30, dateFormat = "yyyy-MM-dd")
     private Date expectedArrivalDate;
 
-    /** 订单总金额 */
+    /**
+     * 订单总金额
+     */
     @Excel(name = "订单总金额")
     private BigDecimal totalAmount;
 
-    /** 订单状态 */
+    /**
+     * 订单状态
+     */
     @Excel(name = "订单状态", dictType = "warehouse_inbound_status")
     private String orderStatus;
 
-    /** 申请人 */
-    @Excel(name = "申请人")
+    /**
+     * 申请人
+     */
+    @Excel(name = "申请人", type = Excel.Type.IMPORT)
     private Long applicantId;
+    @TableField(exist = false)
+    @Excel(name = "申请人", type = Excel.Type.EXPORT)
+    private String applicantName;
 
-    /** 审批状态 */
+    /**
+     * 审批状态
+     */
     @Excel(name = "审批状态", dictType = "warehouse_applicant_status")
     private String applicantStatus;
 
-    /** 审批人 */
-    @Excel(name = "审批人")
+    /**
+     * 审批人
+     */
+    @Excel(name = "审批人", type = Excel.Type.IMPORT)
     private Long approverId;
+    @TableField(exist = false)
+    @Excel(name = "审批人", type = Excel.Type.EXPORT)
+    private String approverName;
 
-    /** 审批时间 */
+    /**
+     * 审批时间
+     */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @Excel(name = "审批时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss")
     private Date approvalTime;
 
-    /** 审批描述 */
+    /**
+     * 审批描述
+     */
     @Excel(name = "审批描述")
     private String approvalDesc;
 
-    /** 创建人 */
+    /**
+     * 创建人
+     */
     @Excel(name = "创建人")
     private String createBy;
 
-    /** 创建时间 */
+    /**
+     * 创建时间
+     */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @Excel(name = "创建时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 
-    /** 更新人 */
+    /**
+     * 更新人
+     */
     @Excel(name = "更新人")
     private String updateBy;
 
-    /** 更新时间 */
+    /**
+     * 更新时间
+     */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @Excel(name = "更新时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss")
     private Date updateTime;
 
-    /** 备注 */
+    /**
+     * 备注
+     */
     @Excel(name = "备注")
     private String remark;
 
-    /** 采购订单明细信息 */
+    /**
+     * 采购订单明细信息
+     */
     @TableField(exist = false)
     private List<PurchaseOrderDetailInfo> purchaseOrderDetailInfoList;
 
-    /** 请求参数 */
+    /**
+     * 请求参数
+     */
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     @TableField(exist = false)
     private Map<String, Object> params;

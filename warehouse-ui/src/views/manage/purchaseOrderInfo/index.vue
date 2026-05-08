@@ -132,7 +132,7 @@
                        :show-overflow-tooltip="true"/>
       <el-table-column label="订单号" align="center" prop="orderNo" v-if="columns[1].visible"
                        :show-overflow-tooltip="true"/>
-      <el-table-column label="供应商" align="center" prop="supplierId" v-if="columns[2].visible"
+      <el-table-column label="供应商" align="center" prop="supplierName" v-if="columns[2].visible"
                        :show-overflow-tooltip="true"/>
       <el-table-column label="订单日期" align="center" prop="orderDate" width="180" v-if="columns[3].visible"
                        :show-overflow-tooltip="true">
@@ -153,14 +153,14 @@
           <dict-tag :options="warehouse_inbound_status" :value="scope.row.orderStatus"/>
         </template>
       </el-table-column>
-      <el-table-column label="申请人" align="center" prop="applicantId" v-if="columns[7].visible"
+      <el-table-column label="申请人" align="center" prop="applicantName" v-if="columns[7].visible"
                        :show-overflow-tooltip="true"/>
       <el-table-column label="审批状态" align="center" prop="applicantStatus" v-if="columns[8].visible">
         <template #default="scope">
           <dict-tag :options="warehouse_applicant_status" :value="scope.row.applicantStatus"/>
         </template>
       </el-table-column>
-      <el-table-column label="审批人" align="center" prop="approverId" v-if="columns[9].visible"
+      <el-table-column label="审批人" align="center" prop="approverName" v-if="columns[9].visible"
                        :show-overflow-tooltip="true"/>
       <el-table-column label="审批时间" align="center" prop="approvalTime" width="180" v-if="columns[10].visible"
                        :show-overflow-tooltip="true">

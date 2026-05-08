@@ -1,30 +1,28 @@
 package com.lz.manage.service.impl;
 
-import java.util.*;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.stream.Collectors;
-import com.lz.common.utils.StringUtils;
-import java.math.BigDecimal;
-import java.util.List;
-import com.lz.manage.model.domain.PurchaseOrderDetailInfo;
-import java.util.Date;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.lz.common.utils.DateUtils;
-import jakarta.annotation.Resource;
-import org.springframework.stereotype.Service;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import java.util.ArrayList;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lz.common.utils.DateUtils;
+import com.lz.common.utils.SecurityUtils;
 import com.lz.common.utils.StringUtils;
-import org.springframework.transaction.annotation.Transactional;
-import com.lz.manage.model.domain.PurchaseOrderDetailInfo;
+import com.lz.common.utils.ThrowUtils;
+import com.lz.manage.enums.WarehouseOrderApplicantStatusEnum;
+import com.lz.manage.enums.WarehouseOrderStatusEnum;
 import com.lz.manage.mapper.PurchaseOrderInfoMapper;
+import com.lz.manage.model.domain.PurchaseOrderDetailInfo;
 import com.lz.manage.model.domain.PurchaseOrderInfo;
-import com.lz.manage.service.IPurchaseOrderInfoService;
+import com.lz.manage.model.domain.SupplierInfo;
 import com.lz.manage.model.dto.purchaseOrderInfo.PurchaseOrderInfoQuery;
 import com.lz.manage.model.vo.purchaseOrderInfo.PurchaseOrderInfoVo;
+import com.lz.manage.service.IPurchaseOrderInfoService;
+import com.lz.manage.service.ISupplierInfoService;
+import jakarta.annotation.Resource;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 采购订单Service业务层处理
@@ -33,13 +31,16 @@ import com.lz.manage.model.vo.purchaseOrderInfo.PurchaseOrderInfoVo;
  * @date 2026-05-08
  */
 @Service
-public class PurchaseOrderInfoServiceImpl extends ServiceImpl<PurchaseOrderInfoMapper, PurchaseOrderInfo> implements IPurchaseOrderInfoService
-{
+public class PurchaseOrderInfoServiceImpl extends ServiceImpl<PurchaseOrderInfoMapper, PurchaseOrderInfo> implements IPurchaseOrderInfoService {
 
     @Resource
     private PurchaseOrderInfoMapper purchaseOrderInfoMapper;
 
+    @Resource
+    private ISupplierInfoService supplierInfoService;
+
     //region mybatis代码
+
     /**
      * 查询采购订单
      *
@@ -47,8 +48,7 @@ public class PurchaseOrderInfoServiceImpl extends ServiceImpl<PurchaseOrderInfoM
      * @return 采购订单
      */
     @Override
-    public PurchaseOrderInfo selectPurchaseOrderInfoByOrderId(Long orderId)
-    {
+    public PurchaseOrderInfo selectPurchaseOrderInfoByOrderId(Long orderId) {
         return purchaseOrderInfoMapper.selectPurchaseOrderInfoByOrderId(orderId);
     }
 
@@ -59,8 +59,7 @@ public class PurchaseOrderInfoServiceImpl extends ServiceImpl<PurchaseOrderInfoM
      * @return 采购订单
      */
     @Override
-    public List<PurchaseOrderInfo> selectPurchaseOrderInfoList(PurchaseOrderInfo purchaseOrderInfo)
-    {
+    public List<PurchaseOrderInfo> selectPurchaseOrderInfoList(PurchaseOrderInfo purchaseOrderInfo) {
         return purchaseOrderInfoMapper.selectPurchaseOrderInfoList(purchaseOrderInfo);
     }
 
@@ -72,12 +71,21 @@ public class PurchaseOrderInfoServiceImpl extends ServiceImpl<PurchaseOrderInfoM
      */
     @Transactional
     @Override
-    public int insertPurchaseOrderInfo(PurchaseOrderInfo purchaseOrderInfo)
-    {
+    public int insertPurchaseOrderInfo(PurchaseOrderInfo purchaseOrderInfo) {
+        //判断供应商是否存在
+        SupplierInfo supplierInfo = supplierInfoService.selectSupplierInfoById(purchaseOrderInfo.getSupplierId());
+        ThrowUtils.throwIf(StringUtils.isNull(supplierInfo), "供应商不存在");
+        //判断编号是否存在
+        PurchaseOrderInfo purchaseOrderInfoByNo = purchaseOrderInfoMapper.selectPurchaseOrderInfoByNo(purchaseOrderInfo.getOrderNo());
+        ThrowUtils.throwIf(StringUtils.isNotNull(purchaseOrderInfoByNo), "采购订单编号已存在");
+        purchaseOrderInfo.setOrderStatus(WarehouseOrderStatusEnum.WAREHOUSE_ORDER_STATUS_0.getValue());
+        purchaseOrderInfo.setApplicantStatus(WarehouseOrderApplicantStatusEnum.WAREHOUSE_ORDER_APPLICANT_STATUS_0.getValue());
+        purchaseOrderInfo.setCreateBy(SecurityUtils.getUsername());
         purchaseOrderInfo.setCreateTime(DateUtils.getNowDate());
-        int rows = purchaseOrderInfoMapper.insertPurchaseOrderInfo(purchaseOrderInfo);
+        purchaseOrderInfo.setTotalAmount(calculateTotalAmount(purchaseOrderInfo.getPurchaseOrderDetailInfoList()));
+        int i = purchaseOrderInfoMapper.insertPurchaseOrderInfo(purchaseOrderInfo);
         insertPurchaseOrderDetailInfo(purchaseOrderInfo);
-        return rows;
+        return i;
     }
 
     /**
@@ -88,11 +96,19 @@ public class PurchaseOrderInfoServiceImpl extends ServiceImpl<PurchaseOrderInfoM
      */
     @Transactional
     @Override
-    public int updatePurchaseOrderInfo(PurchaseOrderInfo purchaseOrderInfo)
-    {
+    public int updatePurchaseOrderInfo(PurchaseOrderInfo purchaseOrderInfo) {
+        //判断供应商是否存在
+        SupplierInfo supplierInfo = supplierInfoService.selectSupplierInfoById(purchaseOrderInfo.getSupplierId());
+        ThrowUtils.throwIf(StringUtils.isNull(supplierInfo), "供应商不存在");
+        //判断编号是否存在
+        PurchaseOrderInfo purchaseOrderInfoByNo = purchaseOrderInfoMapper.selectPurchaseOrderInfoByNo(purchaseOrderInfo.getOrderNo());
+        ThrowUtils.throwIf(StringUtils.isNotNull(purchaseOrderInfoByNo)
+                           && !purchaseOrderInfoByNo.getOrderId().equals(purchaseOrderInfo.getOrderId()),
+                "采购订单编号已存在");
         purchaseOrderInfo.setUpdateTime(DateUtils.getNowDate());
         purchaseOrderInfoMapper.deletePurchaseOrderDetailInfoByOrderId(purchaseOrderInfo.getOrderId());
         insertPurchaseOrderDetailInfo(purchaseOrderInfo);
+        purchaseOrderInfo.setTotalAmount(calculateTotalAmount(purchaseOrderInfo.getPurchaseOrderDetailInfoList()));
         return purchaseOrderInfoMapper.updatePurchaseOrderInfo(purchaseOrderInfo);
     }
 
@@ -104,8 +120,7 @@ public class PurchaseOrderInfoServiceImpl extends ServiceImpl<PurchaseOrderInfoM
      */
     @Transactional
     @Override
-    public int deletePurchaseOrderInfoByOrderIds(Long[] orderIds)
-    {
+    public int deletePurchaseOrderInfoByOrderIds(Long[] orderIds) {
         purchaseOrderInfoMapper.deletePurchaseOrderDetailInfoByOrderIds(orderIds);
         return purchaseOrderInfoMapper.deletePurchaseOrderInfoByOrderIds(orderIds);
     }
@@ -118,10 +133,25 @@ public class PurchaseOrderInfoServiceImpl extends ServiceImpl<PurchaseOrderInfoM
      */
     @Transactional
     @Override
-    public int deletePurchaseOrderInfoByOrderId(Long orderId)
-    {
+    public int deletePurchaseOrderInfoByOrderId(Long orderId) {
         purchaseOrderInfoMapper.deletePurchaseOrderDetailInfoByOrderId(orderId);
         return purchaseOrderInfoMapper.deletePurchaseOrderInfoByOrderId(orderId);
+    }
+
+    /**
+     * 计算采购订单明细总金额
+     *
+     * @param purchaseOrderDetailInfoList 采购订单明细列表
+     * @return 总金额
+     */
+    public BigDecimal calculateTotalAmount(List<PurchaseOrderDetailInfo> purchaseOrderDetailInfoList) {
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        if (StringUtils.isNotNull(purchaseOrderDetailInfoList)) {
+            for (PurchaseOrderDetailInfo purchaseOrderDetailInfo : purchaseOrderDetailInfoList) {
+                totalAmount = totalAmount.add(purchaseOrderDetailInfo.getPurchasePrice().multiply(BigDecimal.valueOf(purchaseOrderDetailInfo.getPurchaseQuantity())));
+            }
+        }
+        return totalAmount;
     }
 
     /**
@@ -129,27 +159,42 @@ public class PurchaseOrderInfoServiceImpl extends ServiceImpl<PurchaseOrderInfoM
      *
      * @param purchaseOrderInfo 采购订单对象
      */
-    public void insertPurchaseOrderDetailInfo(PurchaseOrderInfo purchaseOrderInfo)
-    {
+    public void insertPurchaseOrderDetailInfo(PurchaseOrderInfo purchaseOrderInfo) {
         List<PurchaseOrderDetailInfo> purchaseOrderDetailInfoList = purchaseOrderInfo.getPurchaseOrderDetailInfoList();
         Long orderId = purchaseOrderInfo.getOrderId();
-        if (StringUtils.isNotNull(purchaseOrderDetailInfoList))
-        {
+        if (StringUtils.isNotNull(purchaseOrderDetailInfoList)) {
             List<PurchaseOrderDetailInfo> list = new ArrayList<PurchaseOrderDetailInfo>();
-            for (PurchaseOrderDetailInfo purchaseOrderDetailInfo : purchaseOrderDetailInfoList)
-            {
+            for (PurchaseOrderDetailInfo purchaseOrderDetailInfo : purchaseOrderDetailInfoList) {
+                //判断备件编号、采购数量、采购单价、金额、已收数量是否为空
+                ThrowUtils.throwIf(StringUtils.isEmpty(purchaseOrderDetailInfo.getPartsCode()), "备件编号不能为空");
+                ThrowUtils.throwIf(StringUtils.isNull(purchaseOrderDetailInfo.getPurchaseQuantity()), "采购数量不能为空");
+                ThrowUtils.throwIf(StringUtils.isNull(purchaseOrderDetailInfo.getPurchasePrice()), "采购单价不能为空");
+                ThrowUtils.throwIf(StringUtils.isNull(purchaseOrderDetailInfo.getAmount()), "金额不能为空");
+                ThrowUtils.throwIf(StringUtils.isNull(purchaseOrderDetailInfo.getReceivedQuantity()), "已收数量不能为空");
                 purchaseOrderDetailInfo.setOrderId(orderId);
+                if (StringUtils.isNotEmpty(purchaseOrderInfo.getCreateBy())) {
+                    purchaseOrderDetailInfo.setCreateBy(purchaseOrderInfo.getCreateBy());
+                }
+                if (StringUtils.isNotEmpty(purchaseOrderInfo.getUpdateBy())) {
+                    purchaseOrderDetailInfo.setUpdateBy(purchaseOrderInfo.getUpdateBy());
+                }
+                if (StringUtils.isNotNull(purchaseOrderInfo.getCreateTime())) {
+                    purchaseOrderDetailInfo.setCreateTime(purchaseOrderInfo.getCreateTime());
+                }
+                if (StringUtils.isNotNull(purchaseOrderInfo.getUpdateTime())) {
+                    purchaseOrderDetailInfo.setUpdateTime(purchaseOrderInfo.getUpdateTime());
+                }
                 list.add(purchaseOrderDetailInfo);
             }
-            if (list.size() > 0)
-            {
+            if (!list.isEmpty()) {
                 purchaseOrderInfoMapper.batchPurchaseOrderDetailInfo(list);
             }
         }
     }
+
     //endregion
     @Override
-    public QueryWrapper<PurchaseOrderInfo> getQueryWrapper(PurchaseOrderInfoQuery purchaseOrderInfoQuery){
+    public QueryWrapper<PurchaseOrderInfo> getQueryWrapper(PurchaseOrderInfoQuery purchaseOrderInfoQuery) {
         QueryWrapper<PurchaseOrderInfo> queryWrapper = new QueryWrapper<>();
         //如果不使用params可以删除
         Map<String, Object> params = purchaseOrderInfoQuery.getParams();
@@ -157,25 +202,25 @@ public class PurchaseOrderInfoServiceImpl extends ServiceImpl<PurchaseOrderInfoM
             params = new HashMap<>();
         }
         Long orderId = purchaseOrderInfoQuery.getOrderId();
-        queryWrapper.eq( StringUtils.isNotNull(orderId),"order_id",orderId);
+        queryWrapper.eq(StringUtils.isNotNull(orderId), "order_id", orderId);
 
         String orderNo = purchaseOrderInfoQuery.getOrderNo();
-        queryWrapper.eq(StringUtils.isNotEmpty(orderNo) ,"order_no",orderNo);
+        queryWrapper.eq(StringUtils.isNotEmpty(orderNo), "order_no", orderNo);
 
         Long supplierId = purchaseOrderInfoQuery.getSupplierId();
-        queryWrapper.eq( StringUtils.isNotNull(supplierId),"supplier_id",supplierId);
+        queryWrapper.eq(StringUtils.isNotNull(supplierId), "supplier_id", supplierId);
 
         String orderStatus = purchaseOrderInfoQuery.getOrderStatus();
-        queryWrapper.eq(StringUtils.isNotEmpty(orderStatus) ,"order_status",orderStatus);
+        queryWrapper.eq(StringUtils.isNotEmpty(orderStatus), "order_status", orderStatus);
 
         String applicantStatus = purchaseOrderInfoQuery.getApplicantStatus();
-        queryWrapper.eq(StringUtils.isNotEmpty(applicantStatus) ,"applicant_status",applicantStatus);
+        queryWrapper.eq(StringUtils.isNotEmpty(applicantStatus), "applicant_status", applicantStatus);
 
         String createBy = purchaseOrderInfoQuery.getCreateBy();
-        queryWrapper.like(StringUtils.isNotEmpty(createBy) ,"create_by",createBy);
+        queryWrapper.like(StringUtils.isNotEmpty(createBy), "create_by", createBy);
 
         Date createTime = purchaseOrderInfoQuery.getCreateTime();
-        queryWrapper.between(StringUtils.isNotNull(params.get("beginCreateTime"))&&StringUtils.isNotNull(params.get("endCreateTime")),"create_time",params.get("beginCreateTime"),params.get("endCreateTime"));
+        queryWrapper.between(StringUtils.isNotNull(params.get("beginCreateTime")) && StringUtils.isNotNull(params.get("endCreateTime")), "create_time", params.get("beginCreateTime"), params.get("endCreateTime"));
 
         return queryWrapper;
     }

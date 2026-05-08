@@ -72,8 +72,8 @@ public class PurchaseOrderInfo implements Serializable
     private Long approverId;
 
     /** 审批时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    @Excel(name = "审批时间", width = 30, dateFormat = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Excel(name = "审批时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss")
     private Date approvalTime;
 
     /** 审批描述 */
@@ -85,8 +85,8 @@ public class PurchaseOrderInfo implements Serializable
     private String createBy;
 
     /** 创建时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    @Excel(name = "创建时间", width = 30, dateFormat = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Excel(name = "创建时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 
     /** 更新人 */
@@ -94,8 +94,8 @@ public class PurchaseOrderInfo implements Serializable
     private String updateBy;
 
     /** 更新时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    @Excel(name = "更新时间", width = 30, dateFormat = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Excel(name = "更新时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss")
     private Date updateTime;
 
     /** 备注 */
@@ -103,6 +103,7 @@ public class PurchaseOrderInfo implements Serializable
     private String remark;
 
     /** 采购订单明细信息 */
+    @TableField(exist = false)
     private List<PurchaseOrderDetailInfo> purchaseOrderDetailInfoList;
 
     /** 请求参数 */

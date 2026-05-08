@@ -1,20 +1,21 @@
 package com.lz.manage.mapper;
 
-import java.util.List;
-import com.lz.manage.model.domain.LocationInfo;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.lz.manage.model.domain.LocationInfo;
+
+import java.util.List;
 
 /**
  * 库位Mapper接口
- * 
+ *
  * @author YY
  * @date 2026-05-08
  */
-public interface LocationInfoMapper extends BaseMapper<LocationInfo>
-{
+public interface LocationInfoMapper extends BaseMapper<LocationInfo> {
     /**
      * 查询库位
-     * 
+     *
      * @param id 库位主键
      * @return 库位
      */
@@ -22,7 +23,7 @@ public interface LocationInfoMapper extends BaseMapper<LocationInfo>
 
     /**
      * 查询库位列表
-     * 
+     *
      * @param locationInfo 库位
      * @return 库位集合
      */
@@ -30,7 +31,7 @@ public interface LocationInfoMapper extends BaseMapper<LocationInfo>
 
     /**
      * 新增库位
-     * 
+     *
      * @param locationInfo 库位
      * @return 结果
      */
@@ -38,7 +39,7 @@ public interface LocationInfoMapper extends BaseMapper<LocationInfo>
 
     /**
      * 修改库位
-     * 
+     *
      * @param locationInfo 库位
      * @return 结果
      */
@@ -46,7 +47,7 @@ public interface LocationInfoMapper extends BaseMapper<LocationInfo>
 
     /**
      * 删除库位
-     * 
+     *
      * @param id 库位主键
      * @return 结果
      */
@@ -54,9 +55,15 @@ public interface LocationInfoMapper extends BaseMapper<LocationInfo>
 
     /**
      * 批量删除库位
-     * 
+     *
      * @param ids 需要删除的数据主键集合
      * @return 结果
      */
     public int deleteLocationInfoByIds(Long[] ids);
+
+    default LocationInfo selectLocationInfoByCode(String locationCode, Long warehouseId) {
+        return selectOne(new LambdaQueryWrapper<LocationInfo>()
+                .eq(LocationInfo::getLocationCode, locationCode)
+                .eq(LocationInfo::getWarehouseId, warehouseId));
+    }
 }

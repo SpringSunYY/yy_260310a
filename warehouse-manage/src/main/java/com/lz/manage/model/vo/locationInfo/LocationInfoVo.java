@@ -26,6 +26,7 @@ public class LocationInfoVo implements Serializable
 
     /** 仓库 */
     private Long warehouseId;
+    private String warehouseName;
 
     /** 库位编码 */
     private String locationCode;
@@ -55,14 +56,14 @@ public class LocationInfoVo implements Serializable
     private String createBy;
 
     /** 创建时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 
     /** 更新人 */
     private String updateBy;
 
     /** 更新时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date updateTime;
 
     /** 备注 */

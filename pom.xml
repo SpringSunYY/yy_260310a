@@ -191,6 +191,12 @@
                 <version>${warehouse.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>com.lz</groupId>
+                <artifactId>warehouse-manage</artifactId>
+                <version>${warehouse.version}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 
@@ -201,6 +207,7 @@
         <module>warehouse-quartz</module>
         <module>warehouse-generator</module>
         <module>warehouse-common</module>
+        <module>warehouse-manage</module>
     </modules>
     <packaging>pom</packaging>
 

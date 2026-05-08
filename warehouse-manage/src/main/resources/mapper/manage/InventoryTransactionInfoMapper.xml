@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lz.manage.mapper.InventoryTransactionInfoMapper">
+    
+    <resultMap type="InventoryTransactionInfo" id="InventoryTransactionInfoResult">
+        <result property="id"    column="id"    />
+        <result property="partsCode"    column="parts_code"    />
+        <result property="warehouseId"    column="warehouse_id"    />
+        <result property="locationId"    column="location_id"    />
+        <result property="batchNo"    column="batch_no"    />
+        <result property="transactionType"    column="transaction_type"    />
+        <result property="changeQuantity"    column="change_quantity"    />
+        <result property="beforeQuantity"    column="before_quantity"    />
+        <result property="afterQuantity"    column="after_quantity"    />
+        <result property="relatedOrderNo"    column="related_order_no"    />
+        <result property="operatorId"    column="operator_id"    />
+        <result property="transactionTime"    column="transaction_time"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectInventoryTransactionInfoVo">
+        select id, parts_code, warehouse_id, location_id, batch_no, transaction_type, change_quantity, before_quantity, after_quantity, related_order_no, operator_id, transaction_time, create_by, create_time, update_by, update_time, remark from tb_inventory_transaction_info
+    </sql>
+
+    <select id="selectInventoryTransactionInfoList" parameterType="InventoryTransactionInfo" resultMap="InventoryTransactionInfoResult">
+        <include refid="selectInventoryTransactionInfoVo"/>
+        <where>  
+            <if test="partsCode != null  and partsCode != ''"> and parts_code = #{partsCode}</if>
+            <if test="warehouseId != null "> and warehouse_id = #{warehouseId}</if>
+            <if test="locationId != null "> and location_id = #{locationId}</if>
+            <if test="batchNo != null  and batchNo != ''"> and batch_no = #{batchNo}</if>
+            <if test="transactionType != null  and transactionType != ''"> and transaction_type = #{transactionType}</if>
+            <if test="relatedOrderNo != null  and relatedOrderNo != ''"> and related_order_no like concat('%', #{relatedOrderNo}, '%')</if>
+            <if test="createBy != null  and createBy != ''"> and create_by like concat('%', #{createBy}, '%')</if>
+            <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''"> and DATE_FORMAT(create_time, '%Y-%m-%d') between #{params.beginCreateTime} and #{params.endCreateTime}</if>
+        </where>
+    </select>
+    
+    <select id="selectInventoryTransactionInfoById" parameterType="Long" resultMap="InventoryTransactionInfoResult">
+        <include refid="selectInventoryTransactionInfoVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertInventoryTransactionInfo" parameterType="InventoryTransactionInfo" useGeneratedKeys="true" keyProperty="id">
+        insert into tb_inventory_transaction_info
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="partsCode != null and partsCode != ''">parts_code,</if>
+            <if test="warehouseId != null">warehouse_id,</if>
+            <if test="locationId != null">location_id,</if>
+            <if test="batchNo != null">batch_no,</if>
+            <if test="transactionType != null and transactionType != ''">transaction_type,</if>
+            <if test="changeQuantity != null">change_quantity,</if>
+            <if test="beforeQuantity != null">before_quantity,</if>
+            <if test="afterQuantity != null">after_quantity,</if>
+            <if test="relatedOrderNo != null">related_order_no,</if>
+            <if test="operatorId != null">operator_id,</if>
+            <if test="transactionTime != null">transaction_time,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="partsCode != null and partsCode != ''">#{partsCode},</if>
+            <if test="warehouseId != null">#{warehouseId},</if>
+            <if test="locationId != null">#{locationId},</if>
+            <if test="batchNo != null">#{batchNo},</if>
+            <if test="transactionType != null and transactionType != ''">#{transactionType},</if>
+            <if test="changeQuantity != null">#{changeQuantity},</if>
+            <if test="beforeQuantity != null">#{beforeQuantity},</if>
+            <if test="afterQuantity != null">#{afterQuantity},</if>
+            <if test="relatedOrderNo != null">#{relatedOrderNo},</if>
+            <if test="operatorId != null">#{operatorId},</if>
+            <if test="transactionTime != null">#{transactionTime},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateInventoryTransactionInfo" parameterType="InventoryTransactionInfo">
+        update tb_inventory_transaction_info
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="partsCode != null and partsCode != ''">parts_code = #{partsCode},</if>
+            <if test="warehouseId != null">warehouse_id = #{warehouseId},</if>
+            <if test="locationId != null">location_id = #{locationId},</if>
+            <if test="batchNo != null">batch_no = #{batchNo},</if>
+            <if test="transactionType != null and transactionType != ''">transaction_type = #{transactionType},</if>
+            <if test="changeQuantity != null">change_quantity = #{changeQuantity},</if>
+            <if test="beforeQuantity != null">before_quantity = #{beforeQuantity},</if>
+            <if test="afterQuantity != null">after_quantity = #{afterQuantity},</if>
+            <if test="relatedOrderNo != null">related_order_no = #{relatedOrderNo},</if>
+            <if test="operatorId != null">operator_id = #{operatorId},</if>
+            <if test="transactionTime != null">transaction_time = #{transactionTime},</if>
+            <if test="createBy != null and createBy != ''">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteInventoryTransactionInfoById" parameterType="Long">
+        delete from tb_inventory_transaction_info where id = #{id}
+    </delete>
+
+    <delete id="deleteInventoryTransactionInfoByIds" parameterType="String">
+        delete from tb_inventory_transaction_info where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

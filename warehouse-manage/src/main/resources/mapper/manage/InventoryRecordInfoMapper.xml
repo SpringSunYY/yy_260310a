@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lz.manage.mapper.InventoryRecordInfoMapper">
+    
+    <resultMap type="InventoryRecordInfo" id="InventoryRecordInfoResult">
+        <result property="id"    column="id"    />
+        <result property="partsCode"    column="parts_code"    />
+        <result property="warehouseId"    column="warehouse_id"    />
+        <result property="locationId"    column="location_id"    />
+        <result property="quantity"    column="quantity"    />
+        <result property="frozenQuantity"    column="frozen_quantity"    />
+        <result property="availableQuantity"    column="available_quantity"    />
+        <result property="expiryDate"    column="expiry_date"    />
+        <result property="lastInboundDate"    column="last_inbound_date"    />
+        <result property="lastOutboundDate"    column="last_outbound_date"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectInventoryRecordInfoVo">
+        select id, parts_code, warehouse_id, location_id, quantity, frozen_quantity, available_quantity, expiry_date, last_inbound_date, last_outbound_date, create_by, create_time, update_by, update_time, remark from tb_inventory_record_info
+    </sql>
+
+    <select id="selectInventoryRecordInfoList" parameterType="InventoryRecordInfo" resultMap="InventoryRecordInfoResult">
+        <include refid="selectInventoryRecordInfoVo"/>
+        <where>  
+            <if test="id != null "> and id = #{id}</if>
+            <if test="partsCode != null  and partsCode != ''"> and parts_code = #{partsCode}</if>
+            <if test="warehouseId != null "> and warehouse_id = #{warehouseId}</if>
+            <if test="locationId != null "> and location_id = #{locationId}</if>
+            <if test="createBy != null  and createBy != ''"> and create_by like concat('%', #{createBy}, '%')</if>
+            <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''"> and DATE_FORMAT(create_time, '%Y-%m-%d') between #{params.beginCreateTime} and #{params.endCreateTime}</if>
+        </where>
+    </select>
+    
+    <select id="selectInventoryRecordInfoById" parameterType="Long" resultMap="InventoryRecordInfoResult">
+        <include refid="selectInventoryRecordInfoVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertInventoryRecordInfo" parameterType="InventoryRecordInfo" useGeneratedKeys="true" keyProperty="id">
+        insert into tb_inventory_record_info
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="partsCode != null and partsCode != ''">parts_code,</if>
+            <if test="warehouseId != null">warehouse_id,</if>
+            <if test="locationId != null">location_id,</if>
+            <if test="quantity != null">quantity,</if>
+            <if test="frozenQuantity != null">frozen_quantity,</if>
+            <if test="availableQuantity != null">available_quantity,</if>
+            <if test="expiryDate != null">expiry_date,</if>
+            <if test="lastInboundDate != null">last_inbound_date,</if>
+            <if test="lastOutboundDate != null">last_outbound_date,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="partsCode != null and partsCode != ''">#{partsCode},</if>
+            <if test="warehouseId != null">#{warehouseId},</if>
+            <if test="locationId != null">#{locationId},</if>
+            <if test="quantity != null">#{quantity},</if>
+            <if test="frozenQuantity != null">#{frozenQuantity},</if>
+            <if test="availableQuantity != null">#{availableQuantity},</if>
+            <if test="expiryDate != null">#{expiryDate},</if>
+            <if test="lastInboundDate != null">#{lastInboundDate},</if>
+            <if test="lastOutboundDate != null">#{lastOutboundDate},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateInventoryRecordInfo" parameterType="InventoryRecordInfo">
+        update tb_inventory_record_info
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="partsCode != null and partsCode != ''">parts_code = #{partsCode},</if>
+            <if test="warehouseId != null">warehouse_id = #{warehouseId},</if>
+            <if test="locationId != null">location_id = #{locationId},</if>
+            <if test="quantity != null">quantity = #{quantity},</if>
+            <if test="frozenQuantity != null">frozen_quantity = #{frozenQuantity},</if>
+            <if test="availableQuantity != null">available_quantity = #{availableQuantity},</if>
+            <if test="expiryDate != null">expiry_date = #{expiryDate},</if>
+            <if test="lastInboundDate != null">last_inbound_date = #{lastInboundDate},</if>
+            <if test="lastOutboundDate != null">last_outbound_date = #{lastOutboundDate},</if>
+            <if test="createBy != null and createBy != ''">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteInventoryRecordInfoById" parameterType="Long">
+        delete from tb_inventory_record_info where id = #{id}
+    </delete>
+
+    <delete id="deleteInventoryRecordInfoByIds" parameterType="String">
+        delete from tb_inventory_record_info where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

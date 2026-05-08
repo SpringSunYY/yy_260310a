@@ -54,6 +54,11 @@
             <artifactId>warehouse-generator</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.lz</groupId>
+            <artifactId>warehouse-manage</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>

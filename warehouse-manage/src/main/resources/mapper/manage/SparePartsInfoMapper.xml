@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lz.manage.mapper.SparePartsInfoMapper">
+    
+    <resultMap type="SparePartsInfo" id="SparePartsInfoResult">
+        <result property="id"    column="id"    />
+        <result property="partsCode"    column="parts_code"    />
+        <result property="partsName"    column="parts_name"    />
+        <result property="specificationModel"    column="specification_model"    />
+        <result property="unit"    column="unit"    />
+        <result property="category"    column="category"    />
+        <result property="partsStatus"    column="parts_status"    />
+        <result property="storageCondition"    column="storage_condition"    />
+        <result property="unitPrice"    column="unit_price"    />
+        <result property="minStock"    column="min_stock"    />
+        <result property="maxStock"    column="max_stock"    />
+        <result property="currentStock"    column="current_stock"    />
+        <result property="supplierId"    column="supplier_id"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectSparePartsInfoVo">
+        select id, parts_code, parts_name, specification_model, unit, category, parts_status, storage_condition, unit_price, min_stock, max_stock, current_stock, supplier_id, create_by, create_time, update_by, update_time, remark from tb_spare_parts_info
+    </sql>
+
+    <select id="selectSparePartsInfoList" parameterType="SparePartsInfo" resultMap="SparePartsInfoResult">
+        <include refid="selectSparePartsInfoVo"/>
+        <where>  
+            <if test="id != null "> and id = #{id}</if>
+            <if test="partsCode != null  and partsCode != ''"> and parts_code = #{partsCode}</if>
+            <if test="partsName != null  and partsName != ''"> and parts_name like concat('%', #{partsName}, '%')</if>
+            <if test="specificationModel != null  and specificationModel != ''"> and specification_model = #{specificationModel}</if>
+            <if test="category != null  and category != ''"> and category = #{category}</if>
+            <if test="partsStatus != null  and partsStatus != ''"> and parts_status = #{partsStatus}</if>
+            <if test="supplierId != null "> and supplier_id = #{supplierId}</if>
+            <if test="createBy != null  and createBy != ''"> and create_by like concat('%', #{createBy}, '%')</if>
+            <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''"> and DATE_FORMAT(create_time, '%Y-%m-%d') between #{params.beginCreateTime} and #{params.endCreateTime}</if>
+        </where>
+    </select>
+    
+    <select id="selectSparePartsInfoById" parameterType="Long" resultMap="SparePartsInfoResult">
+        <include refid="selectSparePartsInfoVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertSparePartsInfo" parameterType="SparePartsInfo" useGeneratedKeys="true" keyProperty="id">
+        insert into tb_spare_parts_info
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="partsCode != null and partsCode != ''">parts_code,</if>
+            <if test="partsName != null and partsName != ''">parts_name,</if>
+            <if test="specificationModel != null and specificationModel != ''">specification_model,</if>
+            <if test="unit != null">unit,</if>
+            <if test="category != null and category != ''">category,</if>
+            <if test="partsStatus != null and partsStatus != ''">parts_status,</if>
+            <if test="storageCondition != null">storage_condition,</if>
+            <if test="unitPrice != null">unit_price,</if>
+            <if test="minStock != null">min_stock,</if>
+            <if test="maxStock != null">max_stock,</if>
+            <if test="currentStock != null">current_stock,</if>
+            <if test="supplierId != null">supplier_id,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="partsCode != null and partsCode != ''">#{partsCode},</if>
+            <if test="partsName != null and partsName != ''">#{partsName},</if>
+            <if test="specificationModel != null and specificationModel != ''">#{specificationModel},</if>
+            <if test="unit != null">#{unit},</if>
+            <if test="category != null and category != ''">#{category},</if>
+            <if test="partsStatus != null and partsStatus != ''">#{partsStatus},</if>
+            <if test="storageCondition != null">#{storageCondition},</if>
+            <if test="unitPrice != null">#{unitPrice},</if>
+            <if test="minStock != null">#{minStock},</if>
+            <if test="maxStock != null">#{maxStock},</if>
+            <if test="currentStock != null">#{currentStock},</if>
+            <if test="supplierId != null">#{supplierId},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateSparePartsInfo" parameterType="SparePartsInfo">
+        update tb_spare_parts_info
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="partsCode != null and partsCode != ''">parts_code = #{partsCode},</if>
+            <if test="partsName != null and partsName != ''">parts_name = #{partsName},</if>
+            <if test="specificationModel != null and specificationModel != ''">specification_model = #{specificationModel},</if>
+            <if test="unit != null">unit = #{unit},</if>
+            <if test="category != null and category != ''">category = #{category},</if>
+            <if test="partsStatus != null and partsStatus != ''">parts_status = #{partsStatus},</if>
+            <if test="storageCondition != null">storage_condition = #{storageCondition},</if>
+            <if test="unitPrice != null">unit_price = #{unitPrice},</if>
+            <if test="minStock != null">min_stock = #{minStock},</if>
+            <if test="maxStock != null">max_stock = #{maxStock},</if>
+            <if test="currentStock != null">current_stock = #{currentStock},</if>
+            <if test="supplierId != null">supplier_id = #{supplierId},</if>
+            <if test="createBy != null and createBy != ''">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteSparePartsInfoById" parameterType="Long">
+        delete from tb_spare_parts_info where id = #{id}
+    </delete>
+
+    <delete id="deleteSparePartsInfoByIds" parameterType="String">
+        delete from tb_spare_parts_info where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

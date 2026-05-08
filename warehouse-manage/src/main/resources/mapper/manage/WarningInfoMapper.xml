@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lz.manage.mapper.WarningInfoMapper">
+    
+    <resultMap type="WarningInfo" id="WarningInfoResult">
+        <result property="id"    column="id"    />
+        <result property="partsCode"    column="parts_code"    />
+        <result property="partsName"    column="parts_name"    />
+        <result property="warnType"    column="warn_type"    />
+        <result property="currentStock"    column="current_stock"    />
+        <result property="thresholdStock"    column="threshold_stock"    />
+        <result property="differenceStock"    column="difference_stock"    />
+        <result property="warningStatus"    column="warning_status"    />
+        <result property="handlingMethod"    column="handling_method"    />
+        <result property="handingDate"    column="handing_date"    />
+        <result property="handingUserId"    column="handing_user_id"    />
+        <result property="handingRemark"    column="handing_remark"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectWarningInfoVo">
+        select id, parts_code, parts_name, warn_type, current_stock, threshold_stock, difference_stock, warning_status, handling_method, handing_date, handing_user_id, handing_remark, create_by, create_time, update_by, update_time, remark from tb_warning_info
+    </sql>
+
+    <select id="selectWarningInfoList" parameterType="WarningInfo" resultMap="WarningInfoResult">
+        <include refid="selectWarningInfoVo"/>
+        <where>  
+            <if test="id != null "> and id = #{id}</if>
+            <if test="partsCode != null  and partsCode != ''"> and parts_code = #{partsCode}</if>
+            <if test="partsName != null  and partsName != ''"> and parts_name like concat('%', #{partsName}, '%')</if>
+            <if test="warnType != null  and warnType != ''"> and warn_type = #{warnType}</if>
+            <if test="warningStatus != null  and warningStatus != ''"> and warning_status = #{warningStatus}</if>
+            <if test="createBy != null  and createBy != ''"> and create_by like concat('%', #{createBy}, '%')</if>
+            <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''"> and DATE_FORMAT(create_time, '%Y-%m-%d') between #{params.beginCreateTime} and #{params.endCreateTime}</if>
+        </where>
+    </select>
+    
+    <select id="selectWarningInfoById" parameterType="Long" resultMap="WarningInfoResult">
+        <include refid="selectWarningInfoVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertWarningInfo" parameterType="WarningInfo" useGeneratedKeys="true" keyProperty="id">
+        insert into tb_warning_info
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="partsCode != null and partsCode != ''">parts_code,</if>
+            <if test="partsName != null and partsName != ''">parts_name,</if>
+            <if test="warnType != null and warnType != ''">warn_type,</if>
+            <if test="currentStock != null">current_stock,</if>
+            <if test="thresholdStock != null">threshold_stock,</if>
+            <if test="differenceStock != null">difference_stock,</if>
+            <if test="warningStatus != null and warningStatus != ''">warning_status,</if>
+            <if test="handlingMethod != null">handling_method,</if>
+            <if test="handingDate != null">handing_date,</if>
+            <if test="handingUserId != null">handing_user_id,</if>
+            <if test="handingRemark != null">handing_remark,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="partsCode != null and partsCode != ''">#{partsCode},</if>
+            <if test="partsName != null and partsName != ''">#{partsName},</if>
+            <if test="warnType != null and warnType != ''">#{warnType},</if>
+            <if test="currentStock != null">#{currentStock},</if>
+            <if test="thresholdStock != null">#{thresholdStock},</if>
+            <if test="differenceStock != null">#{differenceStock},</if>
+            <if test="warningStatus != null and warningStatus != ''">#{warningStatus},</if>
+            <if test="handlingMethod != null">#{handlingMethod},</if>
+            <if test="handingDate != null">#{handingDate},</if>
+            <if test="handingUserId != null">#{handingUserId},</if>
+            <if test="handingRemark != null">#{handingRemark},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateWarningInfo" parameterType="WarningInfo">
+        update tb_warning_info
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="partsCode != null and partsCode != ''">parts_code = #{partsCode},</if>
+            <if test="partsName != null and partsName != ''">parts_name = #{partsName},</if>
+            <if test="warnType != null and warnType != ''">warn_type = #{warnType},</if>
+            <if test="currentStock != null">current_stock = #{currentStock},</if>
+            <if test="thresholdStock != null">threshold_stock = #{thresholdStock},</if>
+            <if test="differenceStock != null">difference_stock = #{differenceStock},</if>
+            <if test="warningStatus != null and warningStatus != ''">warning_status = #{warningStatus},</if>
+            <if test="handlingMethod != null">handling_method = #{handlingMethod},</if>
+            <if test="handingDate != null">handing_date = #{handingDate},</if>
+            <if test="handingUserId != null">handing_user_id = #{handingUserId},</if>
+            <if test="handingRemark != null">handing_remark = #{handingRemark},</if>
+            <if test="createBy != null and createBy != ''">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteWarningInfoById" parameterType="Long">
+        delete from tb_warning_info where id = #{id}
+    </delete>
+
+    <delete id="deleteWarningInfoByIds" parameterType="String">
+        delete from tb_warning_info where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

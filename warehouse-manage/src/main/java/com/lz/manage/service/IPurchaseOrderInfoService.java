@@ -48,6 +48,15 @@ public interface IPurchaseOrderInfoService extends IService<PurchaseOrderInfo>
      */
     public int updatePurchaseOrderInfo(PurchaseOrderInfo purchaseOrderInfo);
 
+
+    /**
+     * 审批采购订单
+     *
+     * @param purchaseOrderInfo 采购订单
+     * @return 采购订单
+     */
+    int auditPurchaseOrderInfo(PurchaseOrderInfo purchaseOrderInfo);
+
     /**
      * 批量删除采购订单
      * 

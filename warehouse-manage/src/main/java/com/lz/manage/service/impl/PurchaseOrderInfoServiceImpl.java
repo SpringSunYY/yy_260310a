@@ -112,6 +112,32 @@ public class PurchaseOrderInfoServiceImpl extends ServiceImpl<PurchaseOrderInfoM
         return purchaseOrderInfoMapper.updatePurchaseOrderInfo(purchaseOrderInfo);
     }
 
+    @Override
+    public int auditPurchaseOrderInfo(PurchaseOrderInfo purchaseOrderInfo) {
+        //判断供应商是否存在
+        SupplierInfo supplierInfo = supplierInfoService.selectSupplierInfoById(purchaseOrderInfo.getSupplierId());
+        ThrowUtils.throwIf(StringUtils.isNull(supplierInfo), "供应商不存在");
+        //判断编号是否存在
+        PurchaseOrderInfo purchaseOrderInfoByNo = purchaseOrderInfoMapper.selectPurchaseOrderInfoByNo(purchaseOrderInfo.getOrderNo());
+        ThrowUtils.throwIf(StringUtils.isNotNull(purchaseOrderInfoByNo)
+                           && !purchaseOrderInfoByNo.getOrderId().equals(purchaseOrderInfo.getOrderId()),
+                "采购订单编号已存在");
+        //是否已经同意审核
+        ThrowUtils.throwIf(purchaseOrderInfoByNo.getApplicantStatus().equals(WarehouseOrderApplicantStatusEnum.WAREHOUSE_ORDER_APPLICANT_STATUS_1.getValue()),
+                "采购订单已同意，不可修改");
+        //如果两者状态不一致
+        Date nowDate = DateUtils.getNowDate();
+        if (!purchaseOrderInfo.getApplicantStatus().equals(purchaseOrderInfoByNo.getApplicantStatus())) {
+            purchaseOrderInfo.setApprovalTime(nowDate);
+            purchaseOrderInfo.setApproverId(SecurityUtils.getUserId());
+        }
+        purchaseOrderInfo.setUpdateTime(nowDate);
+        purchaseOrderInfoMapper.deletePurchaseOrderDetailInfoByOrderId(purchaseOrderInfo.getOrderId());
+        insertPurchaseOrderDetailInfo(purchaseOrderInfo);
+        purchaseOrderInfo.setTotalAmount(calculateTotalAmount(purchaseOrderInfo.getPurchaseOrderDetailInfoList()));
+        return purchaseOrderInfoMapper.updatePurchaseOrderInfo(purchaseOrderInfo);
+    }
+
     /**
      * 批量删除采购订单
      *

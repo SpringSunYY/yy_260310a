@@ -105,6 +105,17 @@ public class PurchaseOrderInfoController extends BaseController
     }
 
     /**
+     * 审核采购订单
+     */
+    @PreAuthorize("@ss.hasPermi('manage:purchaseOrderInfo:audit')")
+    @Log(title = "采购订单", businessType = BusinessType.UPDATE)
+    @PutMapping("/audit")
+    public AjaxResult audit(@RequestBody PurchaseOrderInfoEdit purchaseOrderInfoEdit){
+        PurchaseOrderInfo purchaseOrderInfo = PurchaseOrderInfoEdit.editToObj(purchaseOrderInfoEdit);
+        return toAjax(purchaseOrderInfoService.auditPurchaseOrderInfo(purchaseOrderInfo));
+    }
+
+    /**
      * 删除采购订单
      */
     @PreAuthorize("@ss.hasPermi('manage:purchaseOrderInfo:remove')")

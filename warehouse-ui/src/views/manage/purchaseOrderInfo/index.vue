@@ -188,13 +188,17 @@
       </el-table-column>
       <el-table-column label="备注" align="center" prop="remark" v-if="columns[16].visible"
                        :show-overflow-tooltip="true"/>
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column width="200" fixed="right" label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
                      v-hasPermi="['manage:purchaseOrderInfo:edit']">修改
           </el-button>
           <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)"
                      v-hasPermi="['manage:purchaseOrderInfo:remove']">删除
+          </el-button>
+          <el-button link type="primary" @click="handleAudit(scope.row)"
+                     v-if="scope.row.orderStatus === '0'"
+                     v-hasPermi="['manage:purchaseOrderInfo:audit']">审核
           </el-button>
         </template>
       </el-table-column>
@@ -264,7 +268,7 @@
         <!--        </el-form-item>-->
         <el-form-item label="申请人" prop="applicantId">
           <el-select
-              v-model="form.userId"
+              v-model="form.applicantId"
               filterable
               remote
               reserve-keyword
@@ -345,12 +349,14 @@
           </el-table-column>
           <el-table-column label="采购数量" prop="purchaseQuantity" width="150">
             <template #default="scope">
-              <el-input-number style="width: 100%" :min="1" v-model="scope.row.purchaseQuantity" placeholder="请输入采购数量" @change="handleQuantityChange(scope.$index)"/>
+              <el-input-number style="width: 100%" :min="1" v-model="scope.row.purchaseQuantity"
+                               placeholder="请输入采购数量" @change="handleQuantityChange(scope.$index)"/>
             </template>
           </el-table-column>
           <el-table-column label="采购单价" prop="purchasePrice" width="150">
             <template #default="scope">
-              <el-input-number style="width: 100%" v-model="scope.row.purchasePrice" placeholder="请输入采购单价" :min="0" :precision="2" @change="handleAmountChange(scope.$index)"/>
+              <el-input-number style="width: 100%" v-model="scope.row.purchasePrice" placeholder="请输入采购单价"
+                               :min="0" :precision="2" @change="handleAmountChange(scope.$index)"/>
             </template>
           </el-table-column>
           <el-table-column label="金额" prop="amount" width="150">
@@ -360,7 +366,8 @@
           </el-table-column>
           <el-table-column label="已收货数量" prop="receivedQuantity" width="150">
             <template #default="scope">
-              <el-input-number style="width: 100%" :min="0" v-model="scope.row.receivedQuantity" placeholder="请输入已收货数量"/>
+              <el-input-number style="width: 100%" :min="0" v-model="scope.row.receivedQuantity"
+                               placeholder="请输入已收货数量"/>
             </template>
           </el-table-column>
         </el-table>
@@ -368,6 +375,168 @@
       <template #footer>
         <div class="dialog-footer">
           <el-button type="primary" @click="submitForm">确 定</el-button>
+          <el-button @click="cancel">取 消</el-button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- 添加或修改采购订单对话框 -->
+    <el-dialog :title="title" v-model="openAudit" width="900px" append-to-body>
+      <el-form ref="purchaseOrderInfoRef" :model="form" :rules="rules" label-width="100px">
+        <el-form-item label="采购订单号" prop="orderNo">
+          <el-input :readonly="true" v-model="form.orderNo" placeholder="请输入采购订单号"/>
+        </el-form-item>
+        <el-form-item label="供应商" prop="supplierId">
+          <el-select
+              :disabled="disabled"
+              v-model="form.supplierId"
+              filterable
+              remote
+              reserve-keyword
+              placeholder="请输入供应商名称"
+              :remote-method="remoteGetSupplierList"
+              :loading="supplierLoading"
+              style="width: 100%"
+          >
+            <el-option
+                v-for="item in supplierList"
+                :key="item.id"
+                :label="item.supplierName"
+                :value="item.id"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="订单日期" prop="orderDate">
+          <el-date-picker clearable
+                          :readonly="true"
+                          v-model="form.orderDate"
+                          type="date"
+                          value-format="YYYY-MM-DD"
+                          placeholder="请选择订单日期">
+          </el-date-picker>
+        </el-form-item>
+        <el-form-item label="预计到货日期" prop="expectedArrivalDate">
+          <el-date-picker clearable
+                          :readonly="true"
+                          v-model="form.expectedArrivalDate"
+                          type="date"
+                          value-format="YYYY-MM-DD"
+                          placeholder="请选择预计到货日期">
+          </el-date-picker>
+        </el-form-item>
+        <el-form-item label="订单总金额" prop="totalAmount">
+          <el-input :readonly="true" v-model="form.totalAmount" placeholder="请输入订单总金额"/>
+        </el-form-item>
+        <el-form-item label="申请人" prop="applicantId">
+          <el-select
+              :disabled="true"
+              v-model="form.applicantId"
+              filterable
+              remote
+              reserve-keyword
+              placeholder="请输入用户名称"
+              :remote-method="remoteGetUserList"
+              :loading="userLoading"
+              style="width: 100%"
+          >
+            <el-option
+                v-for="item in userList"
+                :key="item.userId"
+                :label="item.userName"
+                :value="item.userId"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="审批状态" prop="applicantStatus">
+          <el-radio-group v-model="form.applicantStatus">
+            <el-radio
+                v-for="dict in warehouse_applicant_status"
+                :key="dict.value"
+                :value="dict.value"
+            >{{ dict.label }}
+            </el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <!--        <el-form-item label="审批人" prop="approverId">-->
+        <!--          <el-input v-model="form.approverId" placeholder="请输入审批人"/>-->
+        <!--        </el-form-item>-->
+        <!--        <el-form-item label="审批时间" prop="approvalTime">-->
+        <!--          <el-date-picker clearable-->
+        <!--                          v-model="form.approvalTime"-->
+        <!--                          type="date"-->
+        <!--                          value-format="YYYY-MM-DD"-->
+        <!--                          placeholder="请选择审批时间">-->
+        <!--          </el-date-picker>-->
+        <!--        </el-form-item>-->
+        <el-form-item label="审批描述" prop="approvalDesc">
+          <el-input v-model="form.approvalDesc" type="textarea" placeholder="请输入内容"/>
+        </el-form-item>
+        <el-form-item label="备注" prop="remark">
+          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容"/>
+        </el-form-item>
+        <el-divider content-position="center">采购订单明细信息</el-divider>
+        <el-row :gutter="10" class="mb8">
+          <el-col :span="1.5">
+            <el-button type="primary" icon="Plus" @click="handleAddPurchaseOrderDetailInfo">添加</el-button>
+          </el-col>
+          <el-col :span="1.5">
+            <el-button type="danger" icon="Delete" @click="handleDeletePurchaseOrderDetailInfo">删除</el-button>
+          </el-col>
+        </el-row>
+        <el-table :data="purchaseOrderDetailInfoList" :row-class-name="rowPurchaseOrderDetailInfoIndex"
+                  @selection-change="handlePurchaseOrderDetailInfoSelectionChange" ref="purchaseOrderDetailInfo">
+          <el-table-column type="selection" width="50" align="center"/>
+          <el-table-column label="序号" align="center" prop="index" width="50"/>
+          <el-table-column label="备件编号" prop="partsCode" width="150">
+            <template #default="scope">
+              <el-select
+                  v-model="scope.row.partsCode"
+                  filterable
+                  remote
+                  reserve-keyword
+                  placeholder="请输入备件名称"
+                  :remote-method="(query) => remoteGetSparePartsList(query, scope.$index)"
+                  :loading="sparePartsLoading"
+                  style="width: 100%"
+                  @change="handleSparePartsChange($event, scope.$index)"
+              >
+                <el-option
+                    v-for="item in getSparePartsListForRow(scope.$index)"
+                    :key="item.id"
+                    :label="item.partsName"
+                    :value="item.partsCode"
+                />
+              </el-select>
+            </template>
+          </el-table-column>
+          <el-table-column label="采购数量" prop="purchaseQuantity" width="150">
+            <template #default="scope">
+              <el-input-number style="width: 100%" :min="1" v-model="scope.row.purchaseQuantity"
+                               placeholder="请输入采购数量" @change="handleQuantityChange(scope.$index)"/>
+            </template>
+          </el-table-column>
+          <el-table-column label="采购单价" prop="purchasePrice" width="150">
+            <template #default="scope">
+              <el-input-number style="width: 100%" v-model="scope.row.purchasePrice" placeholder="请输入采购单价"
+                               :min="0" :precision="2" @change="handleAmountChange(scope.$index)"/>
+            </template>
+          </el-table-column>
+          <el-table-column label="金额" prop="amount" width="150">
+            <template #default="scope">
+              <el-input :readonly="true" v-model="scope.row.amount" placeholder="自动计算"/>
+            </template>
+          </el-table-column>
+          <el-table-column label="已收货数量" prop="receivedQuantity" width="150">
+            <template #default="scope">
+              <el-input-number style="width: 100%" :min="0" v-model="scope.row.receivedQuantity"
+                               placeholder="请输入已收货数量"/>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-form>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button type="primary" @click="submitAuditForm">确 定</el-button>
           <el-button @click="cancel">取 消</el-button>
         </div>
       </template>
@@ -381,7 +550,7 @@ import {
   getPurchaseOrderInfo,
   delPurchaseOrderInfo,
   addPurchaseOrderInfo,
-  updatePurchaseOrderInfo
+  updatePurchaseOrderInfo, auditPurchaseOrderInfo
 } from "@/api/manage/purchaseOrderInfo";
 import {listSupplierInfo} from "@/api/manage/supplierInfo.js";
 import {allocatedUserListAll} from "@/api/system/role.js";
@@ -489,6 +658,7 @@ function getList() {
 // 取消按钮
 function cancel() {
   open.value = false;
+  openAudit.value = false;
   reset();
 }
 
@@ -767,6 +937,29 @@ const updateTotalAmount = () => {
 };
 
 getSparePartsList()
+
+
+//审核
+const openAudit = ref(false)
+
+function handleAudit(row) {
+  reset();
+  getPurchaseOrderInfo(row.orderId).then(res => {
+    title.value = "审核采购订单"
+    form.value = res.data
+    purchaseOrderDetailInfoList.value = res.data.purchaseOrderDetailInfoList;
+    openAudit.value = true
+  })
+}
+
+function submitAuditForm() {
+  form.value.purchaseOrderDetailInfoList = purchaseOrderDetailInfoList.value;
+  auditPurchaseOrderInfo(form.value).then(res => {
+    proxy.$modal.msgSuccess("审核成功");
+    openAudit.value = false
+    getList();
+  })
+}
 
 getList();
 </script>

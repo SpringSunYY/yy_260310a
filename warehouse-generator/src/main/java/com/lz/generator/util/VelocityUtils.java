@@ -241,6 +241,8 @@ public class VelocityUtils {
         HashSet<String> importList = new HashSet<String>();
         if (StringUtils.isNotNull(subGenTable)) {
             importList.add("java.util.List");
+            // 添加子表实体类的导入
+            importList.add(genTable.getPackageName() + ".model.domain." + subGenTable.getClassName());
         }
         for (GenTableColumn column : columns) {
             if (GenConstants.TYPE_DATE.equals(column.getJavaType())) {

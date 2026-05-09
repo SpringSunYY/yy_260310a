@@ -97,8 +97,11 @@ public class InventoryTransactionInfo implements Serializable {
     /**
      * 操作人
      */
-    @Excel(name = "操作人")
+    @Excel(name = "操作人", type = Excel.Type.IMPORT)
     private Long operatorId;
+    @TableField(exist = false)
+    @Excel(name = "操作人", type = Excel.Type.EXPORT)
+    private String operatorName;
 
     /**
      * 流水时间

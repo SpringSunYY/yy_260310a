@@ -21,6 +21,8 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.lz.common.exception.ServiceException;
+
 /**
  * 库存记录Service业务层处理
  *
@@ -82,6 +84,22 @@ public class InventoryRecordInfoServiceImpl extends ServiceImpl<InventoryRecordI
     }
 
     /**
+     * 校验库位是否属于指定仓库
+     */
+    private void validateLocationBelongsToWarehouse(Long warehouseId, Long locationId) {
+        if (StringUtils.isNull(warehouseId) || StringUtils.isNull(locationId)) {
+            return;
+        }
+        LocationInfo locationInfo = locationInfoService.selectLocationInfoById(locationId);
+        if (StringUtils.isNull(locationInfo)) {
+            throw new ServiceException("库位不存在");
+        }
+        if (!warehouseId.equals(locationInfo.getWarehouseId())) {
+            throw new ServiceException("库位不属于所选仓库");
+        }
+    }
+
+    /**
      * 新增库存记录
      *
      * @param inventoryRecordInfo 库存记录
@@ -89,7 +107,31 @@ public class InventoryRecordInfoServiceImpl extends ServiceImpl<InventoryRecordI
      */
     @Override
     public int insertInventoryRecordInfo(InventoryRecordInfo inventoryRecordInfo) {
+        // 检查是否已存在相同key的记录
+        QueryWrapper<InventoryRecordInfo> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("parts_code", inventoryRecordInfo.getPartsCode());
+        if (StringUtils.isNotNull(inventoryRecordInfo.getWarehouseId())) {
+            queryWrapper.eq("warehouse_id", inventoryRecordInfo.getWarehouseId());
+        }
+        if (StringUtils.isNotNull(inventoryRecordInfo.getLocationId())) {
+            queryWrapper.eq("location_id", inventoryRecordInfo.getLocationId());
+        }
+        if (StringUtils.isNotEmpty(inventoryRecordInfo.getBatchNo())) {
+            queryWrapper.eq("batch_no", inventoryRecordInfo.getBatchNo());
+        }
+        if (this.count(queryWrapper) > 0) {
+            throw new ServiceException("该库位已存在库存记录，请直接修改");
+        }
         inventoryRecordInfo.setCreateTime(DateUtils.getNowDate());
+        // 校验库位是否属于该仓库
+        validateLocationBelongsToWarehouse(inventoryRecordInfo.getWarehouseId(), inventoryRecordInfo.getLocationId());
+        // 自动计算可用数量 = 库存数量 - 冻结数量
+        if (StringUtils.isNotNull(inventoryRecordInfo.getQuantity())
+                && StringUtils.isNotNull(inventoryRecordInfo.getFrozenQuantity())) {
+            inventoryRecordInfo.setAvailableQuantity(
+                    inventoryRecordInfo.getQuantity() - inventoryRecordInfo.getFrozenQuantity()
+            );
+        }
         return inventoryRecordInfoMapper.insertInventoryRecordInfo(inventoryRecordInfo);
     }
 
@@ -101,7 +143,33 @@ public class InventoryRecordInfoServiceImpl extends ServiceImpl<InventoryRecordI
      */
     @Override
     public int updateInventoryRecordInfo(InventoryRecordInfo inventoryRecordInfo) {
+        // 检查是否已存在相同key的其他记录
+        QueryWrapper<InventoryRecordInfo> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("parts_code", inventoryRecordInfo.getPartsCode());
+        if (StringUtils.isNotNull(inventoryRecordInfo.getWarehouseId())) {
+            queryWrapper.eq("warehouse_id", inventoryRecordInfo.getWarehouseId());
+        }
+        if (StringUtils.isNotNull(inventoryRecordInfo.getLocationId())) {
+            queryWrapper.eq("location_id", inventoryRecordInfo.getLocationId());
+        }
+        if (StringUtils.isNotEmpty(inventoryRecordInfo.getBatchNo())) {
+            queryWrapper.eq("batch_no", inventoryRecordInfo.getBatchNo());
+        }
+        queryWrapper.ne("id", inventoryRecordInfo.getId());
+        List<InventoryRecordInfo> existList = this.list(queryWrapper);
+        if (StringUtils.isNotEmpty(existList)) {
+            throw new ServiceException("该库位已存在库存记录，无法修改");
+        }
         inventoryRecordInfo.setUpdateTime(DateUtils.getNowDate());
+        // 校验库位是否属于该仓库
+        validateLocationBelongsToWarehouse(inventoryRecordInfo.getWarehouseId(), inventoryRecordInfo.getLocationId());
+        // 自动计算可用数量 = 库存数量 - 冻结数量
+        if (StringUtils.isNotNull(inventoryRecordInfo.getQuantity())
+                && StringUtils.isNotNull(inventoryRecordInfo.getFrozenQuantity())) {
+            inventoryRecordInfo.setAvailableQuantity(
+                    inventoryRecordInfo.getQuantity() - inventoryRecordInfo.getFrozenQuantity()
+            );
+        }
         return inventoryRecordInfoMapper.updateInventoryRecordInfo(inventoryRecordInfo);
     }
 

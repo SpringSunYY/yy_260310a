@@ -180,6 +180,12 @@ public class PurchaseOrderInfoServiceImpl extends ServiceImpl<PurchaseOrderInfoM
     @Transactional
     @Override
     public int deletePurchaseOrderInfoByOrderIds(Long[] orderIds) {
+        for (Long orderId : orderIds) {
+            PurchaseOrderInfo existingOrder = purchaseOrderInfoMapper.selectPurchaseOrderInfoByOrderId(orderId);
+            ThrowUtils.throwIf(StringUtils.isNull(existingOrder), "采购订单不存在");
+            ThrowUtils.throwIf(WarehouseOrderApplicantStatusEnum.WAREHOUSE_ORDER_APPLICANT_STATUS_1.getValue().equals(existingOrder.getApplicantStatus()),
+                    "已审核通过的采购订单不可删除");
+        }
         purchaseOrderInfoMapper.deletePurchaseOrderDetailInfoByOrderIds(orderIds);
         return purchaseOrderInfoMapper.deletePurchaseOrderInfoByOrderIds(orderIds);
     }
@@ -193,6 +199,10 @@ public class PurchaseOrderInfoServiceImpl extends ServiceImpl<PurchaseOrderInfoM
     @Transactional
     @Override
     public int deletePurchaseOrderInfoByOrderId(Long orderId) {
+        PurchaseOrderInfo existingOrder = purchaseOrderInfoMapper.selectPurchaseOrderInfoByOrderId(orderId);
+        ThrowUtils.throwIf(StringUtils.isNull(existingOrder), "采购订单不存在");
+        ThrowUtils.throwIf(WarehouseOrderApplicantStatusEnum.WAREHOUSE_ORDER_APPLICANT_STATUS_1.getValue().equals(existingOrder.getApplicantStatus()),
+                "已审核通过的采购订单不可删除");
         purchaseOrderInfoMapper.deletePurchaseOrderDetailInfoByOrderId(orderId);
         return purchaseOrderInfoMapper.deletePurchaseOrderInfoByOrderId(orderId);
     }

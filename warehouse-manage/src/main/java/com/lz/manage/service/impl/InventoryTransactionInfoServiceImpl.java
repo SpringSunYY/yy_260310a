@@ -2,6 +2,7 @@ package com.lz.manage.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lz.common.core.domain.entity.SysUser;
 import com.lz.common.utils.DateUtils;
 import com.lz.common.utils.StringUtils;
 import com.lz.common.utils.ThrowUtils;
@@ -11,6 +12,7 @@ import com.lz.manage.model.dto.inventoryTransactionInfo.InventoryTransactionInfo
 import com.lz.manage.model.dto.inventoryTransactionInfo.InventoryTransactionInfoQuery;
 import com.lz.manage.model.vo.inventoryTransactionInfo.InventoryTransactionInfoVo;
 import com.lz.manage.service.*;
+import com.lz.system.service.ISysUserService;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +43,9 @@ public class InventoryTransactionInfoServiceImpl extends ServiceImpl<InventoryTr
 
     @Resource
     private ISparePartsInfoService sparePartsInfoService;
+
+    @Resource
+    private ISysUserService sysUserService;
 
     //region mybatis代码
 
@@ -76,6 +81,12 @@ public class InventoryTransactionInfoServiceImpl extends ServiceImpl<InventoryTr
             SparePartsInfo sparePartsInfo = sparePartsInfoService.selectSparePartsInfoByCode(info.getPartsCode());
             if (StringUtils.isNotNull(sparePartsInfo)) {
                 info.setPartsName(sparePartsInfo.getPartsName());
+            }
+            if (StringUtils.isNotNull(info.getOperatorId())) {
+                SysUser sysUser = sysUserService.selectUserById(info.getOperatorId());
+                if (StringUtils.isNotNull(sysUser)) {
+                    info.setOperatorName(sysUser.getNickName());
+                }
             }
         }
         return inventoryTransactionInfos;
@@ -159,15 +170,6 @@ public class InventoryTransactionInfoServiceImpl extends ServiceImpl<InventoryTr
                 inventoryRecordInfoService.updateInventoryRecordInfo(record);
             }
 
-            // 更新库位统计
-            updateLocationStats(dto.getWarehouseId(), dto.getLocationId(), changeQuantity, nowDate);
-
-            // 更新仓库统计
-            updateWarehouseStats(dto.getWarehouseId(), changeQuantity, nowDate);
-
-            // 更新备件库存
-            updateSparePartsStock(dto.getPartsCode(), changeQuantity, nowDate);
-
             // 新增库存流水记录
             InventoryTransactionInfo transaction = new InventoryTransactionInfo();
             transaction.setPartsCode(dto.getPartsCode());
@@ -185,29 +187,32 @@ public class InventoryTransactionInfoServiceImpl extends ServiceImpl<InventoryTr
             transaction.setCreateBy(dto.getCreateBy());
             transaction.setCreateTime(nowDate);
             inventoryTransactionInfoMapper.insertInventoryTransactionInfo(transaction);
+
+            // 更新库位统计（从流水表汇总）
+            updateLocationStats(dto.getWarehouseId(), dto.getLocationId(), nowDate);
+
+            // 更新仓库统计（从流水表汇总）
+            updateWarehouseStats(dto.getWarehouseId(), nowDate);
+
+            // 更新备件库存（从流水表汇总）
+            updateSparePartsStock(dto.getPartsCode(), nowDate);
         }
     }
 
     /**
      * 更新库位统计
      */
-    private void updateLocationStats(Long warehouseId, Long locationId, Long changeQuantity, Date nowDate) {
+    private void updateLocationStats(Long warehouseId, Long locationId, Date nowDate) {
         if (locationId == null) {
             return;
         }
         LocationInfo location = locationInfoService.selectLocationInfoById(locationId);
         if (location != null) {
-            Long currentQuantity = location.getCurrentQuantity() != null ? location.getCurrentQuantity() : 0L;
-            if (changeQuantity > 0) {
-                // 入库
-                Long inboundQuantity = location.getInboundQuantity() != null ? location.getInboundQuantity() : 0L;
-                location.setInboundQuantity(inboundQuantity + changeQuantity);
-            } else {
-                // 出库
-                Long outboundQuantity = location.getOutboundQuantity() != null ? location.getOutboundQuantity() : 0L;
-                location.setOutboundQuantity(outboundQuantity + Math.abs(changeQuantity));
-            }
-            location.setCurrentQuantity(currentQuantity + changeQuantity);
+            Long inboundQuantity = inventoryTransactionInfoMapper.sumInboundByLocation(locationId);
+            Long outboundQuantity = inventoryTransactionInfoMapper.sumOutboundByLocation(locationId);
+            location.setInboundQuantity(inboundQuantity);
+            location.setOutboundQuantity(outboundQuantity);
+            location.setCurrentQuantity(inboundQuantity - outboundQuantity);
             location.setUpdateTime(nowDate);
             locationInfoService.updateLocationInfo(location);
         }
@@ -216,21 +221,17 @@ public class InventoryTransactionInfoServiceImpl extends ServiceImpl<InventoryTr
     /**
      * 更新仓库统计
      */
-    private void updateWarehouseStats(Long warehouseId, Long changeQuantity, Date nowDate) {
+    private void updateWarehouseStats(Long warehouseId, Date nowDate) {
         if (warehouseId == null) {
             return;
         }
         WarehouseInfo warehouse = warehouseInfoService.selectWarehouseInfoById(warehouseId);
         if (warehouse != null) {
-            Long currentQuantity = warehouse.getCurrentQuantity() != null ? warehouse.getCurrentQuantity() : 0L;
-            if (changeQuantity > 0) {
-                Long inboundQuantity = warehouse.getInboundQuantity() != null ? warehouse.getInboundQuantity() : 0L;
-                warehouse.setInboundQuantity(inboundQuantity + changeQuantity);
-            } else {
-                Long outboundQuantity = warehouse.getOutboundQuantity() != null ? warehouse.getOutboundQuantity() : 0L;
-                warehouse.setOutboundQuantity(outboundQuantity + Math.abs(changeQuantity));
-            }
-            warehouse.setCurrentQuantity(currentQuantity + changeQuantity);
+            Long inboundQuantity = inventoryTransactionInfoMapper.sumInboundByWarehouse(warehouseId);
+            Long outboundQuantity = inventoryTransactionInfoMapper.sumOutboundByWarehouse(warehouseId);
+            warehouse.setInboundQuantity(inboundQuantity);
+            warehouse.setOutboundQuantity(outboundQuantity);
+            warehouse.setCurrentQuantity(inboundQuantity - outboundQuantity);
             warehouse.setUpdateTime(nowDate);
             warehouseInfoService.updateWarehouseInfo(warehouse);
         }
@@ -239,7 +240,7 @@ public class InventoryTransactionInfoServiceImpl extends ServiceImpl<InventoryTr
     /**
      * 更新备件库存
      */
-    private void updateSparePartsStock(String partsCode, Long changeQuantity, Date nowDate) {
+    private void updateSparePartsStock(String partsCode, Date nowDate) {
         if (StringUtils.isEmpty(partsCode)) {
             return;
         }
@@ -248,8 +249,8 @@ public class InventoryTransactionInfoServiceImpl extends ServiceImpl<InventoryTr
         List<SparePartsInfo> list = sparePartsInfoService.selectSparePartsInfoList(query);
         SparePartsInfo spareParts = list != null && !list.isEmpty() ? list.get(0) : null;
         if (spareParts != null) {
-            Long currentStock = spareParts.getCurrentStock() != null ? spareParts.getCurrentStock() : 0L;
-            spareParts.setCurrentStock(currentStock + changeQuantity);
+            Long currentStock = inventoryTransactionInfoMapper.sumStockByPartsCode(partsCode);
+            spareParts.setCurrentStock(currentStock);
             spareParts.setUpdateTime(nowDate);
             sparePartsInfoService.updateSparePartsInfo(spareParts);
         }

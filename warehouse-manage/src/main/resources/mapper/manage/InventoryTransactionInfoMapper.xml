@@ -30,16 +30,21 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <select id="selectInventoryTransactionInfoList" parameterType="InventoryTransactionInfo" resultMap="InventoryTransactionInfoResult">
         <include refid="selectInventoryTransactionInfoVo"/>
-        <where>  
-            <if test="partsCode != null  and partsCode != ''"> and parts_code = #{partsCode}</if>
-            <if test="warehouseId != null "> and warehouse_id = #{warehouseId}</if>
-            <if test="locationId != null "> and location_id = #{locationId}</if>
-            <if test="batchNo != null  and batchNo != ''"> and batch_no = #{batchNo}</if>
-            <if test="transactionType != null  and transactionType != ''"> and transaction_type = #{transactionType}</if>
-            <if test="relatedOrderNo != null  and relatedOrderNo != ''"> and related_order_no like concat('%', #{relatedOrderNo}, '%')</if>
-            <if test="createBy != null  and createBy != ''"> and create_by like concat('%', #{createBy}, '%')</if>
-            <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''"> and DATE_FORMAT(create_time, '%Y-%m-%d') between #{params.beginCreateTime} and #{params.endCreateTime}</if>
+        <where>
+            <if test="partsCode != null  and partsCode != ''">and parts_code = #{partsCode}</if>
+            <if test="warehouseId != null ">and warehouse_id = #{warehouseId}</if>
+            <if test="locationId != null ">and location_id = #{locationId}</if>
+            <if test="batchNo != null  and batchNo != ''">and batch_no = #{batchNo}</if>
+            <if test="transactionType != null  and transactionType != ''">and transaction_type = #{transactionType}</if>
+            <if test="relatedOrderNo != null  and relatedOrderNo != ''">and related_order_no like concat('%',
+                #{relatedOrderNo}, '%')
+            </if>
+            <if test="createBy != null  and createBy != ''">and create_by like concat('%', #{createBy}, '%')</if>
+            <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''">
+                and DATE_FORMAT(create_time, '%Y-%m-%d') between #{params.beginCreateTime} and #{params.endCreateTime}
+            </if>
         </where>
+        order by create_time desc
     </select>
     
     <select id="selectInventoryTransactionInfoById" parameterType="Long" resultMap="InventoryTransactionInfoResult">
@@ -115,9 +120,48 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </delete>
 
     <delete id="deleteInventoryTransactionInfoByIds" parameterType="String">
-        delete from tb_inventory_transaction_info where id in 
+        delete from tb_inventory_transaction_info where id in
         <foreach item="id" collection="array" open="(" separator="," close=")">
             #{id}
         </foreach>
     </delete>
+
+    <!-- 统计库位总入库数量 -->
+    <select id="sumInboundByLocation" resultType="Long">
+        SELECT COALESCE(SUM(change_quantity), 0)
+        FROM tb_inventory_transaction_info
+        WHERE location_id = #{locationId}
+        AND change_quantity > 0
+    </select>
+
+    <!-- 统计库位总出库数量 -->
+    <select id="sumOutboundByLocation" resultType="Long">
+        SELECT COALESCE(SUM(ABS(change_quantity)), 0)
+        FROM tb_inventory_transaction_info
+        WHERE location_id = #{locationId}
+        AND change_quantity &lt; 0
+    </select>
+
+    <!-- 统计仓库总入库数量 -->
+    <select id="sumInboundByWarehouse" resultType="Long">
+        SELECT COALESCE(SUM(change_quantity), 0)
+        FROM tb_inventory_transaction_info
+        WHERE warehouse_id = #{warehouseId}
+        AND change_quantity > 0
+    </select>
+
+    <!-- 统计仓库总出库数量 -->
+    <select id="sumOutboundByWarehouse" resultType="Long">
+        SELECT COALESCE(SUM(ABS(change_quantity)), 0)
+        FROM tb_inventory_transaction_info
+        WHERE warehouse_id = #{warehouseId}
+        AND change_quantity &lt; 0
+    </select>
+
+    <!-- 统计备件当前库存 -->
+    <select id="sumStockByPartsCode" resultType="Long">
+        SELECT COALESCE(SUM(change_quantity), 0)
+        FROM tb_inventory_transaction_info
+        WHERE parts_code = #{partsCode}
+    </select>
 </mapper>

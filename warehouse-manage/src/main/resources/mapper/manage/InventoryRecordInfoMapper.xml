@@ -29,15 +29,18 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <select id="selectInventoryRecordInfoList" parameterType="InventoryRecordInfo" resultMap="InventoryRecordInfoResult">
         <include refid="selectInventoryRecordInfoVo"/>
-        <where>  
-            <if test="id != null "> and id = #{id}</if>
-            <if test="partsCode != null  and partsCode != ''"> and parts_code = #{partsCode}</if>
-            <if test="warehouseId != null "> and warehouse_id = #{warehouseId}</if>
-            <if test="locationId != null "> and location_id = #{locationId}</if>
-            <if test="batchNo != null and batchNo != ''"> and batch_no = #{batchNo}</if>
-            <if test="createBy != null  and createBy != ''"> and create_by like concat('%', #{createBy}, '%')</if>
-            <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''"> and DATE_FORMAT(create_time, '%Y-%m-%d') between #{params.beginCreateTime} and #{params.endCreateTime}</if>
+        <where>
+            <if test="id != null ">and id = #{id}</if>
+            <if test="partsCode != null  and partsCode != ''">and parts_code = #{partsCode}</if>
+            <if test="warehouseId != null ">and warehouse_id = #{warehouseId}</if>
+            <if test="locationId != null ">and location_id = #{locationId}</if>
+            <if test="batchNo != null and batchNo != ''">and batch_no = #{batchNo}</if>
+            <if test="createBy != null  and createBy != ''">and create_by like concat('%', #{createBy}, '%')</if>
+            <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''">
+                and DATE_FORMAT(create_time, '%Y-%m-%d') between #{params.beginCreateTime} and #{params.endCreateTime}
+            </if>
         </where>
+        order by create_time desc
     </select>
     
     <select id="selectInventoryRecordInfoById" parameterType="Long" resultMap="InventoryRecordInfoResult">
@@ -116,6 +119,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         </foreach>
     </delete>
 
+    <!-- 查询库存记录（按备件编码、仓库、库位、批次号） -->
     <select id="selectInventoryRecordInfoByKey" resultMap="InventoryRecordInfoResult">
         <include refid="selectInventoryRecordInfoVo"/>
         where parts_code = #{partsCode}

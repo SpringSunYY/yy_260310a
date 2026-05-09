@@ -31,17 +31,22 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <select id="selectSparePartsInfoList" parameterType="SparePartsInfo" resultMap="SparePartsInfoResult">
         <include refid="selectSparePartsInfoVo"/>
-        <where>  
-            <if test="id != null "> and id = #{id}</if>
-            <if test="partsCode != null  and partsCode != ''"> and parts_code = #{partsCode}</if>
-            <if test="partsName != null  and partsName != ''"> and parts_name like concat('%', #{partsName}, '%')</if>
-            <if test="specificationModel != null  and specificationModel != ''"> and specification_model = #{specificationModel}</if>
-            <if test="category != null  and category != ''"> and category = #{category}</if>
-            <if test="partsStatus != null  and partsStatus != ''"> and parts_status = #{partsStatus}</if>
-            <if test="supplierId != null "> and supplier_id = #{supplierId}</if>
-            <if test="createBy != null  and createBy != ''"> and create_by like concat('%', #{createBy}, '%')</if>
-            <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''"> and DATE_FORMAT(create_time, '%Y-%m-%d') between #{params.beginCreateTime} and #{params.endCreateTime}</if>
+        <where>
+            <if test="id != null ">and id = #{id}</if>
+            <if test="partsCode != null  and partsCode != ''">and parts_code = #{partsCode}</if>
+            <if test="partsName != null  and partsName != ''">and parts_name like concat('%', #{partsName}, '%')</if>
+            <if test="specificationModel != null  and specificationModel != ''">and specification_model =
+                #{specificationModel}
+            </if>
+            <if test="category != null  and category != ''">and category = #{category}</if>
+            <if test="partsStatus != null  and partsStatus != ''">and parts_status = #{partsStatus}</if>
+            <if test="supplierId != null ">and supplier_id = #{supplierId}</if>
+            <if test="createBy != null  and createBy != ''">and create_by like concat('%', #{createBy}, '%')</if>
+            <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''">
+                and DATE_FORMAT(create_time, '%Y-%m-%d') between #{params.beginCreateTime} and #{params.endCreateTime}
+            </if>
         </where>
+        order by create_time desc
     </select>
     
     <select id="selectSparePartsInfoById" parameterType="Long" resultMap="SparePartsInfoResult">

@@ -145,7 +145,7 @@
                        :show-overflow-tooltip="true"/>
       <el-table-column label="关联单号" align="center" prop="relatedOrderNo" v-if="columns[9].visible"
                        :show-overflow-tooltip="true"/>
-      <el-table-column label="操作人" align="center" prop="operatorId" v-if="columns[10].visible"
+      <el-table-column label="操作人" align="center" prop="operatorName" v-if="columns[10].visible"
                        :show-overflow-tooltip="true"/>
       <el-table-column label="流水时间" align="center" prop="transactionTime" width="180" v-if="columns[11].visible"
                        :show-overflow-tooltip="true">
@@ -194,51 +194,51 @@
     <!-- 添加或修改库存流水对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="inventoryTransactionInfoRef" :model="form" :rules="rules" label-width="80px">
-<!--        <el-form-item label="备件编号" prop="partsCode">-->
-<!--          <el-input v-model="form.partsCode" placeholder="请输入备件编号"/>-->
-<!--        </el-form-item>-->
-<!--        <el-form-item label="仓库" prop="warehouseId">-->
-<!--          <el-input v-model="form.warehouseId" placeholder="请输入仓库"/>-->
-<!--        </el-form-item>-->
-<!--        <el-form-item label="库位" prop="locationId">-->
-<!--          <el-input v-model="form.locationId" placeholder="请输入库位"/>-->
-<!--        </el-form-item>-->
-<!--        <el-form-item label="批次号" prop="batchNo">-->
-<!--          <el-input v-model="form.batchNo" placeholder="请输入批次号"/>-->
-<!--        </el-form-item>-->
-<!--        <el-form-item label="流水类型" prop="transactionType">-->
-<!--          <el-select v-model="form.transactionType" placeholder="请选择流水类型">-->
-<!--            <el-option-->
-<!--                v-for="dict in warehouse_transaction_type"-->
-<!--                :key="dict.value"-->
-<!--                :label="dict.label"-->
-<!--                :value="dict.value"-->
-<!--            ></el-option>-->
-<!--          </el-select>-->
-<!--        </el-form-item>-->
-<!--        <el-form-item label="变动数量" prop="changeQuantity">-->
-<!--          <el-input v-model="form.changeQuantity" placeholder="请输入变动数量"/>-->
-<!--        </el-form-item>-->
-<!--        <el-form-item label="变动前库存量" prop="beforeQuantity">-->
-<!--          <el-input v-model="form.beforeQuantity" placeholder="请输入变动前库存量"/>-->
-<!--        </el-form-item>-->
-<!--        <el-form-item label="变动后库存量" prop="afterQuantity">-->
-<!--          <el-input v-model="form.afterQuantity" placeholder="请输入变动后库存量"/>-->
-<!--        </el-form-item>-->
-<!--        <el-form-item label="关联单号" prop="relatedOrderNo">-->
-<!--          <el-input v-model="form.relatedOrderNo" placeholder="请输入关联单号"/>-->
-<!--        </el-form-item>-->
-<!--        <el-form-item label="操作人" prop="operatorId">-->
-<!--          <el-input v-model="form.operatorId" placeholder="请输入操作人"/>-->
-<!--        </el-form-item>-->
-<!--        <el-form-item label="流水时间" prop="transactionTime">-->
-<!--          <el-date-picker clearable-->
-<!--                          v-model="form.transactionTime"-->
-<!--                          type="date"-->
-<!--                          value-format="YYYY-MM-DD"-->
-<!--                          placeholder="请选择流水时间">-->
-<!--          </el-date-picker>-->
-<!--        </el-form-item>-->
+        <!--        <el-form-item label="备件编号" prop="partsCode">-->
+        <!--          <el-input v-model="form.partsCode" placeholder="请输入备件编号"/>-->
+        <!--        </el-form-item>-->
+        <!--        <el-form-item label="仓库" prop="warehouseId">-->
+        <!--          <el-input v-model="form.warehouseId" placeholder="请输入仓库"/>-->
+        <!--        </el-form-item>-->
+        <!--        <el-form-item label="库位" prop="locationId">-->
+        <!--          <el-input v-model="form.locationId" placeholder="请输入库位"/>-->
+        <!--        </el-form-item>-->
+        <!--        <el-form-item label="批次号" prop="batchNo">-->
+        <!--          <el-input v-model="form.batchNo" placeholder="请输入批次号"/>-->
+        <!--        </el-form-item>-->
+        <!--        <el-form-item label="流水类型" prop="transactionType">-->
+        <!--          <el-select v-model="form.transactionType" placeholder="请选择流水类型">-->
+        <!--            <el-option-->
+        <!--                v-for="dict in warehouse_transaction_type"-->
+        <!--                :key="dict.value"-->
+        <!--                :label="dict.label"-->
+        <!--                :value="dict.value"-->
+        <!--            ></el-option>-->
+        <!--          </el-select>-->
+        <!--        </el-form-item>-->
+        <!--        <el-form-item label="变动数量" prop="changeQuantity">-->
+        <!--          <el-input v-model="form.changeQuantity" placeholder="请输入变动数量"/>-->
+        <!--        </el-form-item>-->
+        <!--        <el-form-item label="变动前库存量" prop="beforeQuantity">-->
+        <!--          <el-input v-model="form.beforeQuantity" placeholder="请输入变动前库存量"/>-->
+        <!--        </el-form-item>-->
+        <!--        <el-form-item label="变动后库存量" prop="afterQuantity">-->
+        <!--          <el-input v-model="form.afterQuantity" placeholder="请输入变动后库存量"/>-->
+        <!--        </el-form-item>-->
+        <!--        <el-form-item label="关联单号" prop="relatedOrderNo">-->
+        <!--          <el-input v-model="form.relatedOrderNo" placeholder="请输入关联单号"/>-->
+        <!--        </el-form-item>-->
+        <!--        <el-form-item label="操作人" prop="operatorId">-->
+        <!--          <el-input v-model="form.operatorId" placeholder="请输入操作人"/>-->
+        <!--        </el-form-item>-->
+        <!--        <el-form-item label="流水时间" prop="transactionTime">-->
+        <!--          <el-date-picker clearable-->
+        <!--                          v-model="form.transactionTime"-->
+        <!--                          type="date"-->
+        <!--                          value-format="YYYY-MM-DD"-->
+        <!--                          placeholder="请选择流水时间">-->
+        <!--          </el-date-picker>-->
+        <!--        </el-form-item>-->
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" type="textarea" placeholder="请输入内容"/>
         </el-form-item>

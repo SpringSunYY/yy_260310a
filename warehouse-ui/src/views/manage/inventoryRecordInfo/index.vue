@@ -18,19 +18,37 @@
         />
       </el-form-item>
       <el-form-item label="仓库" prop="warehouseId">
-        <el-input
+        <el-select
             v-model="queryParams.warehouseId"
-            placeholder="请输入仓库"
+            filterable
+            remote
+            reserve-keyword
+            placeholder="请输入仓库名称"
+            :remote-method="remoteGetWarehouseList"
+            :loading="warehouseLoading"
+            style="width: 100%"
             clearable
-            @keyup.enter="handleQuery"
-        />
+            @change="handleSearchWarehouseChange"
+        >
+          <el-option
+              v-for="item in warehouseList"
+              :key="item.id"
+              :label="item.warehouseName"
+              :value="item.id"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item label="库位" prop="locationId">
-        <el-input
+        <el-tree-select
             v-model="queryParams.locationId"
-            placeholder="请输入库位"
+            :data="searchLocationOptions"
+            :props="{ value: 'id', label: 'locationName', children: 'children' }"
+            value-key="id"
+            placeholder="请选择库位"
+            check-strictly
             clearable
-            @keyup.enter="handleQuery"
+            filterable
+            style="width: 100%"
         />
       </el-form-item>
       <el-form-item label="批次号" prop="batchNo">
@@ -185,28 +203,76 @@
     />
 
     <!-- 添加或修改库存记录对话框 -->
-    <el-dialog :title="title" v-model="open" width="500px" append-to-body>
+    <el-dialog :title="title" v-model="open" width="600px" append-to-body>
       <el-form ref="inventoryRecordInfoRef" :model="form" :rules="rules" label-width="80px">
-<!--        <el-form-item label="备件编号" prop="partsCode">-->
-<!--          <el-input v-model="form.partsCode" placeholder="请输入备件编号"/>-->
-<!--        </el-form-item>-->
+        <el-form-item label="备件编号" prop="partsCode">
+          <el-select
+              v-model="form.partsCode"
+              filterable
+              remote
+              reserve-keyword
+              :disabled="form.id != null"
+              placeholder="请输入备件名称"
+              :remote-method="remoteGetSparePartsList"
+              :loading="sparePartsLoading"
+              style="width: 100%"
+              @change="handleSparePartsChange"
+          >
+            <el-option
+                v-for="item in sparePartsList"
+                :key="item.id"
+                :label="item.partsName"
+                :value="item.partsCode"
+            />
+          </el-select>
+        </el-form-item>
         <el-form-item label="仓库" prop="warehouseId">
-          <el-input v-model="form.warehouseId" placeholder="请输入仓库"/>
+          <el-select
+              v-model="form.warehouseId"
+              filterable
+              remote
+              reserve-keyword
+              placeholder="请输入仓库名称"
+              :remote-method="remoteGetWarehouseList"
+              :loading="warehouseLoading"
+              style="width: 100%"
+              @change="handleWarehouseChange"
+          >
+            <el-option
+                v-for="item in warehouseList"
+                :key="item.id"
+                :label="item.warehouseName"
+                :value="item.id"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="库位" prop="locationId">
-          <el-input v-model="form.locationId" placeholder="请输入库位"/>
+          <el-tree-select
+              v-model="form.locationId"
+              :data="locationInfoOptions"
+              :props="{ value: 'id', label: 'locationName', children: 'children' }"
+              value-key="id"
+              placeholder="请选择库位"
+              check-strictly
+              clearable
+              filterable
+              style="width: 100%"
+          />
         </el-form-item>
         <el-form-item label="批次号" prop="batchNo">
-          <el-input v-model="form.batchNo" placeholder="请输入批次号"/>
+          <el-input v-model="form.batchNo" placeholder="请输入批次号" />
         </el-form-item>
         <el-form-item label="库存数量" prop="quantity">
-          <el-input v-model="form.quantity" placeholder="请输入库存数量"/>
+          <el-input-number style="width: 100%" :min="0" v-model="form.quantity" placeholder="请输入库存数量"
+                           @change="calcAvailableQuantity"/>
         </el-form-item>
         <el-form-item label="冻结数量" prop="frozenQuantity">
-          <el-input v-model="form.frozenQuantity" placeholder="请输入冻结数量"/>
+          <el-input-number style="width: 100%" :min="0" v-model="form.frozenQuantity" placeholder="请输入冻结数量"
+                           @change="calcAvailableQuantity"/>
         </el-form-item>
         <el-form-item label="可用数量" prop="availableQuantity">
-          <el-input v-model="form.availableQuantity" placeholder="请输入可用数量"/>
+          <el-input-number style="width: 100%" :min="0" v-model="computedAvailableQuantity"
+                           placeholder="可用数量自动计算" disabled/>
         </el-form-item>
         <el-form-item label="有效期至" prop="expiryDate">
           <el-date-picker clearable
@@ -254,10 +320,15 @@ import {
   listInventoryRecordInfo,
   updateInventoryRecordInfo
 } from "@/api/manage/inventoryRecordInfo";
+import {listWarehouseInfo} from "@/api/manage/warehouseInfo.js";
+import {listLocationInfo} from "@/api/manage/locationInfo.js";
+import {listSparePartsInfo} from "@/api/manage/sparePartsInfo.js";
 
 const {proxy} = getCurrentInstance();
 
 const inventoryRecordInfoList = ref([]);
+const locationInfoOptions = ref([]);
+const searchLocationOptions = ref([]);
 const open = ref(false);
 const loading = ref(true);
 const showSearch = ref(true);
@@ -285,25 +356,19 @@ const data = reactive({
   },
   rules: {
     partsCode: [
-      {required: true, message: "备件编号不能为空", trigger: "blur"}
+      {required: true, message: "备件编号不能为空", trigger: "change"}
     ],
     warehouseId: [
-      {required: true, message: "仓库不能为空", trigger: "blur"}
+      {required: true, message: "仓库不能为空", trigger: "change"}
+    ],
+    batchNo: [
+      {required: false, message: "批次号不能为空", trigger: "blur"}
     ],
     quantity: [
       {required: true, message: "库存数量不能为空", trigger: "blur"}
     ],
     frozenQuantity: [
       {required: true, message: "冻结数量不能为空", trigger: "blur"}
-    ],
-    availableQuantity: [
-      {required: true, message: "可用数量不能为空", trigger: "blur"}
-    ],
-    createBy: [
-      {required: true, message: "创建人不能为空", trigger: "blur"}
-    ],
-    createTime: [
-      {required: true, message: "创建时间不能为空", trigger: "blur"}
     ],
   },
   //表格展示列
@@ -328,6 +393,19 @@ const data = reactive({
 });
 
 const {queryParams, form, rules, columns, exportUrl} = toRefs(data);
+
+/** 计算可用数量 = 库存数量 - 冻结数量 */
+function calcAvailableQuantity() {
+  const q = form.value.quantity || 0;
+  const f = form.value.frozenQuantity || 0;
+  form.value.availableQuantity = q - f;
+}
+
+const computedAvailableQuantity = computed(() => {
+  const q = form.value.quantity || 0;
+  const f = form.value.frozenQuantity || 0;
+  return q - f;
+});
 
 /** 查询库存记录列表 */
 function getList() {
@@ -358,9 +436,9 @@ function reset() {
     warehouseId: null,
     locationId: null,
     batchNo: null,
-    quantity: null,
-    frozenQuantity: null,
-    availableQuantity: null,
+    quantity: 0,
+    frozenQuantity: 0,
+    availableQuantity: 0,
     expiryDate: null,
     lastInboundDate: null,
     lastOutboundDate: null,
@@ -382,6 +460,8 @@ function handleQuery() {
 /** 重置按钮操作 */
 function resetQuery() {
   daterangeCreateTime.value = [];
+  queryParams.value.warehouseId = null;
+  queryParams.value.locationId = null;
   proxy.resetForm("queryRef");
   handleQuery();
 }
@@ -393,21 +473,47 @@ function handleSelectionChange(selection) {
   multiple.value = !selection.length;
 }
 
+/** 查询库位下拉树结构（对话框用，按仓库过滤） */
+function getTreeselect(warehouseId) {
+  const params = warehouseId ? {warehouseId: warehouseId} : {};
+  listLocationInfo(params).then(response => {
+    locationInfoOptions.value = [];
+    const data = {id: 0, locationName: '顶级节点', children: []};
+    data.children = proxy.handleTree(response.data, "id", "parentId");
+    locationInfoOptions.value.push(data);
+  });
+}
+
+/** 查询搜索区域库位树（不带仓库过滤，全量） */
+function getSearchLocationTree() {
+  listLocationInfo().then(response => {
+    searchLocationOptions.value = [];
+    const data = {id: 0, locationName: '顶级节点', children: []};
+    data.children = proxy.handleTree(response.data, "id", "parentId");
+    searchLocationOptions.value.push(data);
+  });
+}
+
 /** 新增按钮操作 */
 function handleAdd() {
   reset();
+  getTreeselect(null);
   open.value = true;
   title.value = "添加库存记录";
+  form.value.quantity = 0;
+  form.value.frozenQuantity = 0;
+  form.value.availableQuantity = 0;
 }
 
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
-  const _id = row.id || ids.value
+  const _id = row.id || ids.value;
   getInventoryRecordInfo(_id).then(response => {
     form.value = response.data;
     open.value = true;
     title.value = "修改库存记录";
+    getTreeselect(form.value.warehouseId);
   });
 }
 
@@ -415,6 +521,7 @@ function handleUpdate(row) {
 function submitForm() {
   proxy.$refs["inventoryRecordInfoRef"].validate(valid => {
     if (valid) {
+      calcAvailableQuantity();
       if (form.value.id != null) {
         updateInventoryRecordInfo(form.value).then(response => {
           proxy.$modal.msgSuccess("修改成功");
@@ -450,6 +557,80 @@ function handleExport() {
     ...queryParams.value
   }, `inventoryRecordInfo_${new Date().getTime()}.xlsx`)
 }
+
+// ===================== 仓库相关 =====================
+const warehouseList = ref([]);
+const warehouseLoading = ref(false);
+const warehouseQueryParams = reactive({
+  pageNum: 1,
+  pageSize: 100,
+  warehouseName: null,
+});
+const getWarehouseList = () => {
+  warehouseLoading.value = true;
+  listWarehouseInfo(warehouseQueryParams).then(response => {
+    warehouseList.value = response.rows;
+    warehouseLoading.value = false;
+  });
+};
+const remoteGetWarehouseList = (query) => {
+  warehouseQueryParams.warehouseName = query;
+  getWarehouseList();
+};
+
+/** 搜索区域 - 仓库变化时清空库位并刷新树 */
+function handleSearchWarehouseChange(val) {
+  queryParams.value.locationId = null;
+  if (val) {
+    getTreeselect(val).then(() => {
+      searchLocationOptions.value = locationInfoOptions.value;
+    });
+  } else {
+    searchLocationOptions.value = [];
+    locationInfoOptions.value = [];
+  }
+}
+
+/** 对话框 - 仓库变化时刷新库位树 */
+function handleWarehouseChange(val) {
+  form.value.locationId = null;
+  if (val) {
+    getTreeselect(val);
+  } else {
+    locationInfoOptions.value = [];
+  }
+}
+
+// ===================== 备件相关 =====================
+const sparePartsList = ref([]);
+const sparePartsLoading = ref(false);
+const sparePartsQueryParams = reactive({
+  pageNum: 1,
+  pageSize: 100,
+  partsName: null,
+  partsStatus: '1'
+});
+const getSparePartsList = () => {
+  sparePartsLoading.value = true;
+  listSparePartsInfo(sparePartsQueryParams).then(response => {
+    sparePartsList.value = response.rows;
+    sparePartsLoading.value = false;
+  });
+};
+const remoteGetSparePartsList = (query) => {
+  sparePartsQueryParams.partsName = query;
+  getSparePartsList();
+};
+const handleSparePartsChange = (val) => {
+  const parts = sparePartsList.value.find(item => item.partsCode === val);
+  if (parts) {
+    form.value.partsName = parts.partsName;
+  }
+};
+
+getWarehouseList();
+getSparePartsList();
+getSearchLocationTree();
 
 getList();
 </script>

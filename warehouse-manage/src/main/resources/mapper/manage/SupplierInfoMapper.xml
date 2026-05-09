@@ -27,15 +27,20 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <select id="selectSupplierInfoList" parameterType="SupplierInfo" resultMap="SupplierInfoResult">
         <include refid="selectSupplierInfoVo"/>
-        <where>  
-            <if test="id != null "> and id = #{id}</if>
-            <if test="supplierCode != null  and supplierCode != ''"> and supplier_code = #{supplierCode}</if>
-            <if test="supplierName != null  and supplierName != ''"> and supplier_name like concat('%', #{supplierName}, '%')</if>
-            <if test="creditLevel != null  and creditLevel != ''"> and credit_level = #{creditLevel}</if>
-            <if test="supplierStatus != null  and supplierStatus != ''"> and supplier_status = #{supplierStatus}</if>
-            <if test="createBy != null  and createBy != ''"> and create_by like concat('%', #{createBy}, '%')</if>
-            <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''"> and DATE_FORMAT(create_time, '%Y-%m-%d') between #{params.beginCreateTime} and #{params.endCreateTime}</if>
+        <where>
+            <if test="id != null ">and id = #{id}</if>
+            <if test="supplierCode != null  and supplierCode != ''">and supplier_code = #{supplierCode}</if>
+            <if test="supplierName != null  and supplierName != ''">and supplier_name like concat('%', #{supplierName},
+                '%')
+            </if>
+            <if test="creditLevel != null  and creditLevel != ''">and credit_level = #{creditLevel}</if>
+            <if test="supplierStatus != null  and supplierStatus != ''">and supplier_status = #{supplierStatus}</if>
+            <if test="createBy != null  and createBy != ''">and create_by like concat('%', #{createBy}, '%')</if>
+            <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''">
+                and DATE_FORMAT(create_time, '%Y-%m-%d') between #{params.beginCreateTime} and #{params.endCreateTime}
+            </if>
         </where>
+        order by create_time desc
     </select>
     
     <select id="selectSupplierInfoById" parameterType="Long" resultMap="SupplierInfoResult">

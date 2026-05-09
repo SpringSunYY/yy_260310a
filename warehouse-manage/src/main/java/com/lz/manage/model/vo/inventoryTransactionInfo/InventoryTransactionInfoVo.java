@@ -75,6 +75,7 @@ public class InventoryTransactionInfoVo implements Serializable {
      * 操作人
      */
     private Long operatorId;
+    private String operatorName;
 
     /**
      * 流水时间

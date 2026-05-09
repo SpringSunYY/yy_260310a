@@ -54,9 +54,34 @@ public interface InventoryTransactionInfoMapper extends BaseMapper<InventoryTran
 
     /**
      * 批量删除库存流水
-     * 
+     *
      * @param ids 需要删除的数据主键集合
      * @return 结果
      */
     public int deleteInventoryTransactionInfoByIds(Long[] ids);
+
+    /**
+     * 统计库位总入库数量
+     */
+    public Long sumInboundByLocation(Long locationId);
+
+    /**
+     * 统计库位总出库数量
+     */
+    public Long sumOutboundByLocation(Long locationId);
+
+    /**
+     * 统计仓库总入库数量
+     */
+    public Long sumInboundByWarehouse(Long warehouseId);
+
+    /**
+     * 统计仓库总出库数量
+     */
+    public Long sumOutboundByWarehouse(Long warehouseId);
+
+    /**
+     * 统计备件当前库存
+     */
+    public Long sumStockByPartsCode(String partsCode);
 }

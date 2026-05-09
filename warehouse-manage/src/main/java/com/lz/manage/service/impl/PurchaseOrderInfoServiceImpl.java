@@ -129,6 +129,9 @@ public class PurchaseOrderInfoServiceImpl extends ServiceImpl<PurchaseOrderInfoM
         ThrowUtils.throwIf(StringUtils.isNotNull(purchaseOrderInfoByNo)
                            && !purchaseOrderInfoByNo.getOrderId().equals(purchaseOrderInfo.getOrderId()),
                 "采购订单编号已存在");
+        //如果已入库不可修改
+        ThrowUtils.throwIf(purchaseOrderInfoByNo.getOrderStatus().equals(WarehouseOrderStatusEnum.WAREHOUSE_ORDER_STATUS_1.getValue()),
+                "采购订单已入库，不可修改");
         purchaseOrderInfo.setUpdateTime(DateUtils.getNowDate());
         purchaseOrderInfo.setCreateBy(purchaseOrderInfoByNo.getCreateBy());
         purchaseOrderInfo.setCreateTime(purchaseOrderInfoByNo.getCreateTime());
@@ -227,6 +230,8 @@ public class PurchaseOrderInfoServiceImpl extends ServiceImpl<PurchaseOrderInfoM
                 ThrowUtils.throwIf(StringUtils.isNull(purchaseOrderDetailInfo.getPurchasePrice()), "采购单价不能为空");
                 ThrowUtils.throwIf(StringUtils.isNull(purchaseOrderDetailInfo.getAmount()), "金额不能为空");
                 ThrowUtils.throwIf(StringUtils.isNull(purchaseOrderDetailInfo.getReceivedQuantity()), "已收数量不能为空");
+                //如果收货数量大于采购数量
+                ThrowUtils.throwIf(purchaseOrderDetailInfo.getPurchaseQuantity() < purchaseOrderDetailInfo.getReceivedQuantity(), "收货数量不能大于采购数量");
                 purchaseOrderDetailInfo.setOrderId(orderId);
                 if (StringUtils.isNotEmpty(purchaseOrderInfo.getCreateBy())) {
                     purchaseOrderDetailInfo.setCreateBy(purchaseOrderInfo.getCreateBy());

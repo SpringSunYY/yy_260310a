@@ -32,6 +32,13 @@ public class ThrowUtils {
     }
 
     /**
+     * 直接抛出
+     */
+    public static void throwServiceException(String message) {
+        throw new ServiceException(message);
+    }
+
+    /**
      * 条件成立则抛异常
      *
      * @param condition 条件

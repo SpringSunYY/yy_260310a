@@ -26,6 +26,9 @@ public class InventoryRecordInfoInsert implements Serializable
     /** 库位 */
     private Long locationId;
 
+    /** 批次号 */
+    private String batchNo;
+
     /** 库存数量 */
     private Long quantity;
 

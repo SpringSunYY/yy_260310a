@@ -59,4 +59,15 @@ public interface InventoryRecordInfoMapper extends BaseMapper<InventoryRecordInf
      * @return 结果
      */
     public int deleteInventoryRecordInfoByIds(Long[] ids);
+
+    /**
+     * 查询库存记录（按备件编码、仓库、库位、批次号）
+     *
+     * @param partsCode 备件编码
+     * @param warehouseId 仓库ID
+     * @param locationId 库位ID
+     * @param batchNo 批次号
+     * @return 库存记录
+     */
+    public InventoryRecordInfo selectInventoryRecordInfoByKey(String partsCode, Long warehouseId, Long locationId, String batchNo);
 }

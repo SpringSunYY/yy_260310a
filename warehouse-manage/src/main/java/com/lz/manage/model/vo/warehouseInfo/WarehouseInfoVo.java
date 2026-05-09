@@ -61,6 +61,11 @@ public class WarehouseInfoVo implements Serializable {
     private Long totalCapacity;
 
     /**
+     * 当前数量
+     */
+    private Long currentQuantity;
+
+    /**
      * 入库总数
      */
     private Long inboundQuantity;

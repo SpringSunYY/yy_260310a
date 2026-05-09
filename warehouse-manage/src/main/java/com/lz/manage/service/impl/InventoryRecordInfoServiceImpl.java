@@ -1,23 +1,23 @@
 package com.lz.manage.service.impl;
 
-import java.util.*;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.stream.Collectors;
-import com.lz.common.utils.StringUtils;
-import java.util.Date;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.lz.common.utils.DateUtils;
-import jakarta.annotation.Resource;
-import org.springframework.stereotype.Service;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lz.common.utils.DateUtils;
+import com.lz.common.utils.StringUtils;
 import com.lz.manage.mapper.InventoryRecordInfoMapper;
 import com.lz.manage.model.domain.InventoryRecordInfo;
-import com.lz.manage.service.IInventoryRecordInfoService;
+import com.lz.manage.model.domain.LocationInfo;
+import com.lz.manage.model.domain.WarehouseInfo;
 import com.lz.manage.model.dto.inventoryRecordInfo.InventoryRecordInfoQuery;
 import com.lz.manage.model.vo.inventoryRecordInfo.InventoryRecordInfoVo;
+import com.lz.manage.service.IInventoryRecordInfoService;
+import com.lz.manage.service.ILocationInfoService;
+import com.lz.manage.service.IWarehouseInfoService;
+import jakarta.annotation.Resource;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 库存记录Service业务层处理
@@ -26,13 +26,19 @@ import com.lz.manage.model.vo.inventoryRecordInfo.InventoryRecordInfoVo;
  * @date 2026-05-08
  */
 @Service
-public class InventoryRecordInfoServiceImpl extends ServiceImpl<InventoryRecordInfoMapper, InventoryRecordInfo> implements IInventoryRecordInfoService
-{
+public class InventoryRecordInfoServiceImpl extends ServiceImpl<InventoryRecordInfoMapper, InventoryRecordInfo> implements IInventoryRecordInfoService {
 
     @Resource
     private InventoryRecordInfoMapper inventoryRecordInfoMapper;
 
+    @Resource
+    private IWarehouseInfoService warehouseInfoService;
+
+    @Resource
+    private ILocationInfoService locationInfoService;
+
     //region mybatis代码
+
     /**
      * 查询库存记录
      *
@@ -40,8 +46,7 @@ public class InventoryRecordInfoServiceImpl extends ServiceImpl<InventoryRecordI
      * @return 库存记录
      */
     @Override
-    public InventoryRecordInfo selectInventoryRecordInfoById(Long id)
-    {
+    public InventoryRecordInfo selectInventoryRecordInfoById(Long id) {
         return inventoryRecordInfoMapper.selectInventoryRecordInfoById(id);
     }
 
@@ -52,9 +57,19 @@ public class InventoryRecordInfoServiceImpl extends ServiceImpl<InventoryRecordI
      * @return 库存记录
      */
     @Override
-    public List<InventoryRecordInfo> selectInventoryRecordInfoList(InventoryRecordInfo inventoryRecordInfo)
-    {
-        return inventoryRecordInfoMapper.selectInventoryRecordInfoList(inventoryRecordInfo);
+    public List<InventoryRecordInfo> selectInventoryRecordInfoList(InventoryRecordInfo inventoryRecordInfo) {
+        List<InventoryRecordInfo> inventoryRecordInfos = inventoryRecordInfoMapper.selectInventoryRecordInfoList(inventoryRecordInfo);
+        for (InventoryRecordInfo info : inventoryRecordInfos) {
+            WarehouseInfo warehouseInfo = warehouseInfoService.selectWarehouseInfoById(info.getWarehouseId());
+            if (StringUtils.isNotNull(warehouseInfo)) {
+                info.setWarehouseName(warehouseInfo.getWarehouseName());
+            }
+            LocationInfo locationInfo = locationInfoService.selectLocationInfoById(info.getLocationId());
+            if (StringUtils.isNotNull(locationInfo)) {
+                info.setLocationName(locationInfo.getLocationName());
+            }
+        }
+        return inventoryRecordInfos;
     }
 
     /**
@@ -64,8 +79,7 @@ public class InventoryRecordInfoServiceImpl extends ServiceImpl<InventoryRecordI
      * @return 结果
      */
     @Override
-    public int insertInventoryRecordInfo(InventoryRecordInfo inventoryRecordInfo)
-    {
+    public int insertInventoryRecordInfo(InventoryRecordInfo inventoryRecordInfo) {
         inventoryRecordInfo.setCreateTime(DateUtils.getNowDate());
         return inventoryRecordInfoMapper.insertInventoryRecordInfo(inventoryRecordInfo);
     }
@@ -77,8 +91,7 @@ public class InventoryRecordInfoServiceImpl extends ServiceImpl<InventoryRecordI
      * @return 结果
      */
     @Override
-    public int updateInventoryRecordInfo(InventoryRecordInfo inventoryRecordInfo)
-    {
+    public int updateInventoryRecordInfo(InventoryRecordInfo inventoryRecordInfo) {
         inventoryRecordInfo.setUpdateTime(DateUtils.getNowDate());
         return inventoryRecordInfoMapper.updateInventoryRecordInfo(inventoryRecordInfo);
     }
@@ -90,8 +103,7 @@ public class InventoryRecordInfoServiceImpl extends ServiceImpl<InventoryRecordI
      * @return 结果
      */
     @Override
-    public int deleteInventoryRecordInfoByIds(Long[] ids)
-    {
+    public int deleteInventoryRecordInfoByIds(Long[] ids) {
         return inventoryRecordInfoMapper.deleteInventoryRecordInfoByIds(ids);
     }
 
@@ -102,13 +114,21 @@ public class InventoryRecordInfoServiceImpl extends ServiceImpl<InventoryRecordI
      * @return 结果
      */
     @Override
-    public int deleteInventoryRecordInfoById(Long id)
-    {
+    public int deleteInventoryRecordInfoById(Long id) {
         return inventoryRecordInfoMapper.deleteInventoryRecordInfoById(id);
     }
+
+    /**
+     * 查询库存记录（按备件编码、仓库、库位、批次号）
+     */
+    @Override
+    public InventoryRecordInfo selectInventoryRecordInfoByKey(String partsCode, Long warehouseId, Long locationId, String batchNo) {
+        return inventoryRecordInfoMapper.selectInventoryRecordInfoByKey(partsCode, warehouseId, locationId, batchNo);
+    }
+
     //endregion
     @Override
-    public QueryWrapper<InventoryRecordInfo> getQueryWrapper(InventoryRecordInfoQuery inventoryRecordInfoQuery){
+    public QueryWrapper<InventoryRecordInfo> getQueryWrapper(InventoryRecordInfoQuery inventoryRecordInfoQuery) {
         QueryWrapper<InventoryRecordInfo> queryWrapper = new QueryWrapper<>();
         //如果不使用params可以删除
         Map<String, Object> params = inventoryRecordInfoQuery.getParams();
@@ -116,22 +136,22 @@ public class InventoryRecordInfoServiceImpl extends ServiceImpl<InventoryRecordI
             params = new HashMap<>();
         }
         Long id = inventoryRecordInfoQuery.getId();
-        queryWrapper.eq( StringUtils.isNotNull(id),"id",id);
+        queryWrapper.eq(StringUtils.isNotNull(id), "id", id);
 
         String partsCode = inventoryRecordInfoQuery.getPartsCode();
-        queryWrapper.eq(StringUtils.isNotEmpty(partsCode) ,"parts_code",partsCode);
+        queryWrapper.eq(StringUtils.isNotEmpty(partsCode), "parts_code", partsCode);
 
         Long warehouseId = inventoryRecordInfoQuery.getWarehouseId();
-        queryWrapper.eq( StringUtils.isNotNull(warehouseId),"warehouse_id",warehouseId);
+        queryWrapper.eq(StringUtils.isNotNull(warehouseId), "warehouse_id", warehouseId);
 
         Long locationId = inventoryRecordInfoQuery.getLocationId();
-        queryWrapper.eq( StringUtils.isNotNull(locationId),"location_id",locationId);
+        queryWrapper.eq(StringUtils.isNotNull(locationId), "location_id", locationId);
 
         String createBy = inventoryRecordInfoQuery.getCreateBy();
-        queryWrapper.like(StringUtils.isNotEmpty(createBy) ,"create_by",createBy);
+        queryWrapper.like(StringUtils.isNotEmpty(createBy), "create_by", createBy);
 
         Date createTime = inventoryRecordInfoQuery.getCreateTime();
-        queryWrapper.between(StringUtils.isNotNull(params.get("beginCreateTime"))&&StringUtils.isNotNull(params.get("endCreateTime")),"create_time",params.get("beginCreateTime"),params.get("endCreateTime"));
+        queryWrapper.between(StringUtils.isNotNull(params.get("beginCreateTime")) && StringUtils.isNotNull(params.get("endCreateTime")), "create_time", params.get("beginCreateTime"), params.get("endCreateTime"));
 
         return queryWrapper;
     }

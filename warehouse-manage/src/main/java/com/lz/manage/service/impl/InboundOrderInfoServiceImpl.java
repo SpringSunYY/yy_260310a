@@ -1,42 +1,25 @@
 package com.lz.manage.service.impl;
 
-import java.util.*;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.stream.Collectors;
-import com.lz.common.utils.StringUtils;
-import java.util.List;
-import com.lz.manage.model.domain.InboundOrderDetailInfo;
-import java.util.Date;
-import com.fasterxml.jackson.annotation.JsonFormat;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lz.common.utils.DateUtils;
 import com.lz.common.utils.SecurityUtils;
+import com.lz.common.utils.StringUtils;
 import com.lz.common.utils.ThrowUtils;
-import com.lz.manage.enums.WarehouseInboundStatusEnum;
-import com.lz.manage.enums.WarehouseInboundTypeEnum;
-import com.lz.manage.enums.WarehouseOrderApplicantStatusEnum;
-import com.lz.manage.enums.WarehouseOrderStatusEnum;
+import com.lz.manage.enums.*;
 import com.lz.manage.mapper.InboundOrderInfoMapper;
-import com.lz.manage.model.domain.InboundOrderInfo;
-import com.lz.manage.model.domain.PurchaseOrderInfo;
-import com.lz.manage.model.domain.SupplierInfo;
-import com.lz.manage.model.domain.WarehouseInfo;
-import com.lz.manage.model.domain.LocationInfo;
-import com.lz.manage.service.IInboundOrderInfoService;
-import com.lz.manage.service.IPurchaseOrderInfoService;
-import com.lz.manage.service.ISupplierInfoService;
-import com.lz.manage.service.IWarehouseInfoService;
-import com.lz.system.service.ISysUserService;
-import com.lz.manage.service.ILocationInfoService;
+import com.lz.manage.model.domain.*;
 import com.lz.manage.model.dto.inboundOrderInfo.InboundOrderInfoQuery;
+import com.lz.manage.model.dto.inventoryTransactionInfo.InventoryTransactionInfoDto;
 import com.lz.manage.model.vo.inboundOrderInfo.InboundOrderInfoVo;
+import com.lz.manage.service.*;
+import com.lz.system.service.ISysUserService;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import java.util.ArrayList;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 入库单Service业务层处理
@@ -45,8 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @date 2026-05-08
  */
 @Service
-public class InboundOrderInfoServiceImpl extends ServiceImpl<InboundOrderInfoMapper, InboundOrderInfo> implements IInboundOrderInfoService
-{
+public class InboundOrderInfoServiceImpl extends ServiceImpl<InboundOrderInfoMapper, InboundOrderInfo> implements IInboundOrderInfoService {
 
     @Resource
     private InboundOrderInfoMapper inboundOrderInfoMapper;
@@ -66,7 +48,11 @@ public class InboundOrderInfoServiceImpl extends ServiceImpl<InboundOrderInfoMap
     @Resource
     private ISysUserService userService;
 
+    @Resource
+    private IInventoryTransactionInfoService inventoryTransactionInfoService;
+
     //region mybatis代码
+
     /**
      * 查询入库单
      *
@@ -74,8 +60,7 @@ public class InboundOrderInfoServiceImpl extends ServiceImpl<InboundOrderInfoMap
      * @return 入库单
      */
     @Override
-    public InboundOrderInfo selectInboundOrderInfoById(Long id)
-    {
+    public InboundOrderInfo selectInboundOrderInfoById(Long id) {
         return inboundOrderInfoMapper.selectInboundOrderInfoById(id);
     }
 
@@ -86,8 +71,7 @@ public class InboundOrderInfoServiceImpl extends ServiceImpl<InboundOrderInfoMap
      * @return 入库单
      */
     @Override
-    public List<InboundOrderInfo> selectInboundOrderInfoList(InboundOrderInfo inboundOrderInfo)
-    {
+    public List<InboundOrderInfo> selectInboundOrderInfoList(InboundOrderInfo inboundOrderInfo) {
         List<InboundOrderInfo> inboundOrderInfoList = inboundOrderInfoMapper.selectInboundOrderInfoList(inboundOrderInfo);
         for (InboundOrderInfo info : inboundOrderInfoList) {
             // 获取仓库名称
@@ -137,8 +121,7 @@ public class InboundOrderInfoServiceImpl extends ServiceImpl<InboundOrderInfoMap
      */
     @Transactional
     @Override
-    public int insertInboundOrderInfo(InboundOrderInfo inboundOrderInfo)
-    {
+    public int insertInboundOrderInfo(InboundOrderInfo inboundOrderInfo) {
         // 设置默认值
         inboundOrderInfo.setInboundStatus(WarehouseInboundStatusEnum.WAREHOUSE_INBOUND_STATUS_0.getValue());
         inboundOrderInfo.setReviewStatus(WarehouseOrderApplicantStatusEnum.WAREHOUSE_ORDER_APPLICANT_STATUS_0.getValue());
@@ -212,8 +195,7 @@ public class InboundOrderInfoServiceImpl extends ServiceImpl<InboundOrderInfoMap
      */
     @Transactional
     @Override
-    public int updateInboundOrderInfo(InboundOrderInfo inboundOrderInfo)
-    {
+    public int updateInboundOrderInfo(InboundOrderInfo inboundOrderInfo) {
         // 判断入库单是否存在
         InboundOrderInfo existingInboundOrder = inboundOrderInfoMapper.selectInboundOrderInfoById(inboundOrderInfo.getId());
         ThrowUtils.throwIf(StringUtils.isNull(existingInboundOrder), "入库单不存在");
@@ -262,10 +244,12 @@ public class InboundOrderInfoServiceImpl extends ServiceImpl<InboundOrderInfoMap
 
         // 判断入库单是否已审核
         ThrowUtils.throwIf(WarehouseOrderApplicantStatusEnum.WAREHOUSE_ORDER_APPLICANT_STATUS_1.getValue().equals(existingInboundOrder.getReviewStatus()), "入库单已审核通过，不可重复审核");
-
         // 校验明细
         validateInboundOrderDetailInfo(inboundOrderInfo);
 
+        inboundOrderInfo.setCreateBy(existingInboundOrder.getCreateBy());
+        inboundOrderInfo.setCreateTime(existingInboundOrder.getCreateTime());
+        inboundOrderInfo.setInboundNo(existingInboundOrder.getInboundNo());
         Date nowDate = DateUtils.getNowDate();
         // 如果审核状态发生变化，设置审核人和审核时间
         if (!inboundOrderInfo.getReviewStatus().equals(existingInboundOrder.getReviewStatus())) {
@@ -284,6 +268,15 @@ public class InboundOrderInfoServiceImpl extends ServiceImpl<InboundOrderInfoMap
                 purchaseOrderInfo.setOrderStatus(WarehouseOrderStatusEnum.WAREHOUSE_ORDER_STATUS_1.getValue());
                 purchaseOrderInfoService.updateById(purchaseOrderInfo);
             }
+
+            //创建入库流水
+            List<InventoryTransactionInfoDto> transactionInfoDtos = new ArrayList<>();
+            //遍历明细
+            for (InboundOrderDetailInfo detail : inboundOrderInfo.getInboundOrderDetailInfoList()) {
+                InventoryTransactionInfoDto transactionInfoDto = getInventoryTransactionInfoDto(inboundOrderInfo, detail, nowDate);
+                transactionInfoDtos.add(transactionInfoDto);
+            }
+            inventoryTransactionInfoService.insertInventoryTransactionInfos(transactionInfoDtos);
         }
 
         // 删除原有明细并插入新明细
@@ -294,6 +287,23 @@ public class InboundOrderInfoServiceImpl extends ServiceImpl<InboundOrderInfoMap
         return inboundOrderInfoMapper.updateInboundOrderInfo(inboundOrderInfo);
     }
 
+    private static InventoryTransactionInfoDto getInventoryTransactionInfoDto(InboundOrderInfo inboundOrderInfo, InboundOrderDetailInfo detail, Date nowDate) {
+        InventoryTransactionInfoDto transactionInfoDto = new InventoryTransactionInfoDto();
+        transactionInfoDto.setPartsCode(detail.getPartsCode());
+        transactionInfoDto.setWarehouseId(detail.getWarehouseId());
+        transactionInfoDto.setLocationId(detail.getLocationId());
+        transactionInfoDto.setBatchNo(detail.getBatchNo());
+        transactionInfoDto.setTransactionType(WarehouseTransactionTypeEnum.WAREHOUSE_TRANSACTION_TYPE_0.getValue());
+        transactionInfoDto.setRelatedOrderNo(inboundOrderInfo.getInboundNo());
+        transactionInfoDto.setOperatorId(inboundOrderInfo.getOperatorId());
+        transactionInfoDto.setTransactionTime(inboundOrderInfo.getInboundDate());
+        transactionInfoDto.setCreateBy(inboundOrderInfo.getCreateBy());
+        transactionInfoDto.setCreateTime(nowDate);
+        transactionInfoDto.setChangeQuantity(detail.getInboundQuantity());
+        transactionInfoDto.setExpiryDate(detail.getExpiryDate());
+        return transactionInfoDto;
+    }
+
     /**
      * 批量删除入库单
      *
@@ -302,8 +312,7 @@ public class InboundOrderInfoServiceImpl extends ServiceImpl<InboundOrderInfoMap
      */
     @Transactional
     @Override
-    public int deleteInboundOrderInfoByIds(Long[] ids)
-    {
+    public int deleteInboundOrderInfoByIds(Long[] ids) {
         for (Long id : ids) {
             InboundOrderInfo existingInboundOrder = inboundOrderInfoMapper.selectInboundOrderInfoById(id);
             ThrowUtils.throwIf(StringUtils.isNull(existingInboundOrder), "入库单不存在");
@@ -322,8 +331,7 @@ public class InboundOrderInfoServiceImpl extends ServiceImpl<InboundOrderInfoMap
      */
     @Transactional
     @Override
-    public int deleteInboundOrderInfoById(Long id)
-    {
+    public int deleteInboundOrderInfoById(Long id) {
         InboundOrderInfo existingInboundOrder = inboundOrderInfoMapper.selectInboundOrderInfoById(id);
         ThrowUtils.throwIf(StringUtils.isNull(existingInboundOrder), "入库单不存在");
         // 判断入库单是否已审核通过
@@ -337,15 +345,12 @@ public class InboundOrderInfoServiceImpl extends ServiceImpl<InboundOrderInfoMap
      *
      * @param inboundOrderInfo 入库单对象
      */
-    public void insertInboundOrderDetailInfo(InboundOrderInfo inboundOrderInfo)
-    {
+    public void insertInboundOrderDetailInfo(InboundOrderInfo inboundOrderInfo) {
         List<InboundOrderDetailInfo> inboundOrderDetailInfoList = inboundOrderInfo.getInboundOrderDetailInfoList();
         Long id = inboundOrderInfo.getId();
-        if (StringUtils.isNotNull(inboundOrderDetailInfoList))
-        {
+        if (StringUtils.isNotNull(inboundOrderDetailInfoList)) {
             List<InboundOrderDetailInfo> list = new ArrayList<InboundOrderDetailInfo>();
-            for (InboundOrderDetailInfo inboundOrderDetailInfo : inboundOrderDetailInfoList)
-            {
+            for (InboundOrderDetailInfo inboundOrderDetailInfo : inboundOrderDetailInfoList) {
                 inboundOrderDetailInfo.setInboundId(id);
                 if (StringUtils.isNotEmpty(inboundOrderInfo.getCreateBy())) {
                     inboundOrderDetailInfo.setCreateBy(inboundOrderInfo.getCreateBy());
@@ -361,15 +366,15 @@ public class InboundOrderInfoServiceImpl extends ServiceImpl<InboundOrderInfoMap
                 }
                 list.add(inboundOrderDetailInfo);
             }
-            if (!list.isEmpty())
-            {
+            if (!list.isEmpty()) {
                 inboundOrderInfoMapper.batchInboundOrderDetailInfo(list);
             }
         }
     }
+
     //endregion
     @Override
-    public QueryWrapper<InboundOrderInfo> getQueryWrapper(InboundOrderInfoQuery inboundOrderInfoQuery){
+    public QueryWrapper<InboundOrderInfo> getQueryWrapper(InboundOrderInfoQuery inboundOrderInfoQuery) {
         QueryWrapper<InboundOrderInfo> queryWrapper = new QueryWrapper<>();
         //如果不使用params可以删除
         Map<String, Object> params = inboundOrderInfoQuery.getParams();
@@ -377,37 +382,37 @@ public class InboundOrderInfoServiceImpl extends ServiceImpl<InboundOrderInfoMap
             params = new HashMap<>();
         }
         Long id = inboundOrderInfoQuery.getId();
-        queryWrapper.eq( StringUtils.isNotNull(id),"id",id);
+        queryWrapper.eq(StringUtils.isNotNull(id), "id", id);
 
         String inboundNo = inboundOrderInfoQuery.getInboundNo();
-        queryWrapper.eq(StringUtils.isNotEmpty(inboundNo) ,"inbound_no",inboundNo);
+        queryWrapper.eq(StringUtils.isNotEmpty(inboundNo), "inbound_no", inboundNo);
 
         String inboundType = inboundOrderInfoQuery.getInboundType();
-        queryWrapper.eq(StringUtils.isNotEmpty(inboundType) ,"inbound_type",inboundType);
+        queryWrapper.eq(StringUtils.isNotEmpty(inboundType), "inbound_type", inboundType);
 
         Long warehouseId = inboundOrderInfoQuery.getWarehouseId();
-        queryWrapper.eq( StringUtils.isNotNull(warehouseId),"warehouse_id",warehouseId);
+        queryWrapper.eq(StringUtils.isNotNull(warehouseId), "warehouse_id", warehouseId);
 
         Long orderId = inboundOrderInfoQuery.getOrderId();
-        queryWrapper.eq( StringUtils.isNotNull(orderId),"order_id",orderId);
+        queryWrapper.eq(StringUtils.isNotNull(orderId), "order_id", orderId);
 
         Long supplierId = inboundOrderInfoQuery.getSupplierId();
-        queryWrapper.eq( StringUtils.isNotNull(supplierId),"supplier_id",supplierId);
+        queryWrapper.eq(StringUtils.isNotNull(supplierId), "supplier_id", supplierId);
 
         Date inboundDate = inboundOrderInfoQuery.getInboundDate();
-        queryWrapper.eq( StringUtils.isNotNull(inboundDate),"inbound_date",inboundDate);
+        queryWrapper.eq(StringUtils.isNotNull(inboundDate), "inbound_date", inboundDate);
 
         String inboundStatus = inboundOrderInfoQuery.getInboundStatus();
-        queryWrapper.eq(StringUtils.isNotEmpty(inboundStatus) ,"inbound_status",inboundStatus);
+        queryWrapper.eq(StringUtils.isNotEmpty(inboundStatus), "inbound_status", inboundStatus);
 
         String reviewStatus = inboundOrderInfoQuery.getReviewStatus();
-        queryWrapper.eq(StringUtils.isNotEmpty(reviewStatus) ,"review_status",reviewStatus);
+        queryWrapper.eq(StringUtils.isNotEmpty(reviewStatus), "review_status", reviewStatus);
 
         String createBy = inboundOrderInfoQuery.getCreateBy();
-        queryWrapper.like(StringUtils.isNotEmpty(createBy) ,"create_by",createBy);
+        queryWrapper.like(StringUtils.isNotEmpty(createBy), "create_by", createBy);
 
         Date createTime = inboundOrderInfoQuery.getCreateTime();
-        queryWrapper.between(StringUtils.isNotNull(params.get("beginCreateTime"))&&StringUtils.isNotNull(params.get("endCreateTime")),"create_time",params.get("beginCreateTime"),params.get("endCreateTime"));
+        queryWrapper.between(StringUtils.isNotNull(params.get("beginCreateTime")) && StringUtils.isNotNull(params.get("endCreateTime")), "create_time", params.get("beginCreateTime"), params.get("endCreateTime"));
 
         return queryWrapper;
     }

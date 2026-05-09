@@ -2,6 +2,7 @@ package com.lz.manage.service;
 
 import java.util.List;
 import com.lz.manage.model.domain.InventoryTransactionInfo;
+import com.lz.manage.model.dto.inventoryTransactionInfo.InventoryTransactionInfoDto;
 import com.lz.manage.model.vo.inventoryTransactionInfo.InventoryTransactionInfoVo;
 import com.lz.manage.model.dto.inventoryTransactionInfo.InventoryTransactionInfoQuery;
 
@@ -39,6 +40,13 @@ public interface IInventoryTransactionInfoService extends IService<InventoryTran
      * @return 结果
      */
     public int insertInventoryTransactionInfo(InventoryTransactionInfo inventoryTransactionInfo);
+
+    /**
+     * 批量新增库存流水
+     *
+     * @param transactionInfoDtos 库存流水DTO集合
+     */
+    void insertInventoryTransactionInfos(List<InventoryTransactionInfoDto> transactionInfoDtos);
 
     /**
      * 修改库存流水

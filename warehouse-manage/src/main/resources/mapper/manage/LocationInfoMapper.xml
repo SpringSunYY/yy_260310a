@@ -1,46 +1,67 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
-PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lz.manage.mapper.LocationInfoMapper">
-    
+
     <resultMap type="LocationInfo" id="LocationInfoResult">
-        <result property="id"    column="id"    />
-        <result property="warehouseId"    column="warehouse_id"    />
-        <result property="locationCode"    column="location_code"    />
-        <result property="locationName"    column="location_name"    />
-        <result property="parentId"    column="parent_id"    />
-        <result property="level"    column="level"    />
-        <result property="capacity"    column="capacity"    />
-        <result property="inboundQuantity"    column="inbound_quantity"    />
-        <result property="outboundQuantity"    column="outbound_quantity"    />
-        <result property="locationStatus"    column="location_status"    />
-        <result property="createBy"    column="create_by"    />
-        <result property="createTime"    column="create_time"    />
-        <result property="updateBy"    column="update_by"    />
-        <result property="updateTime"    column="update_time"    />
-        <result property="remark"    column="remark"    />
+        <result property="id" column="id"/>
+        <result property="warehouseId" column="warehouse_id"/>
+        <result property="locationCode" column="location_code"/>
+        <result property="locationName" column="location_name"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="level" column="level"/>
+        <result property="capacity" column="capacity"/>
+        <result property="currentQuantity" column="current_quantity"/>
+        <result property="inboundQuantity" column="inbound_quantity"/>
+        <result property="outboundQuantity" column="outbound_quantity"/>
+        <result property="locationStatus" column="location_status"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
     </resultMap>
 
     <sql id="selectLocationInfoVo">
-        select id, warehouse_id, location_code, location_name, parent_id, level, capacity, inbound_quantity, outbound_quantity, location_status, create_by, create_time, update_by, update_time, remark from tb_location_info
+        select id,
+               warehouse_id,
+               location_code,
+               location_name,
+               parent_id,
+               level,
+               capacity,
+               current_quantity,
+               inbound_quantity,
+               outbound_quantity,
+               location_status,
+               create_by,
+               create_time,
+               update_by,
+               update_time,
+               remark
+        from tb_location_info
     </sql>
 
     <select id="selectLocationInfoList" parameterType="LocationInfo" resultMap="LocationInfoResult">
         <include refid="selectLocationInfoVo"/>
-        <where>  
-            <if test="id != null "> and id = #{id}</if>
-            <if test="warehouseId != null "> and warehouse_id = #{warehouseId}</if>
-            <if test="locationCode != null  and locationCode != ''"> and location_code = #{locationCode}</if>
-            <if test="locationName != null  and locationName != ''"> and location_name like concat('%', #{locationName}, '%')</if>
-            <if test="parentId != null "> and parent_id = #{parentId}</if>
-            <if test="level != null "> and level = #{level}</if>
-            <if test="locationStatus != null  and locationStatus != ''"> and location_status = #{locationStatus}</if>
-            <if test="createBy != null  and createBy != ''"> and create_by like concat('%', #{createBy}, '%')</if>
-            <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''"> and DATE_FORMAT(create_time, '%Y-%m-%d') between #{params.beginCreateTime} and #{params.endCreateTime}</if>
+        <where>
+            <if test="id != null ">and id = #{id}</if>
+            <if test="warehouseId != null ">and warehouse_id = #{warehouseId}</if>
+            <if test="locationCode != null  and locationCode != ''">and location_code = #{locationCode}</if>
+            <if test="locationName != null  and locationName != ''">and location_name like concat('%', #{locationName},
+                '%')
+            </if>
+            <if test="parentId != null ">and parent_id = #{parentId}</if>
+            <if test="level != null ">and level = #{level}</if>
+            <if test="locationStatus != null  and locationStatus != ''">and location_status = #{locationStatus}</if>
+            <if test="createBy != null  and createBy != ''">and create_by like concat('%', #{createBy}, '%')</if>
+            <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''">
+                and DATE_FORMAT(create_time, '%Y-%m-%d') between #{params.beginCreateTime} and #{params.endCreateTime}
+            </if>
         </where>
     </select>
-    
+
     <select id="selectLocationInfoById" parameterType="Long" resultMap="LocationInfoResult">
         <include refid="selectLocationInfoVo"/>
         where id = #{id}
@@ -55,6 +76,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="parentId != null">parent_id,</if>
             <if test="level != null">level,</if>
             <if test="capacity != null">capacity,</if>
+            <if test="currentQuantity != null">current_quantity,</if>
             <if test="inboundQuantity != null">inbound_quantity,</if>
             <if test="outboundQuantity != null">outbound_quantity,</if>
             <if test="locationStatus != null and locationStatus != ''">location_status,</if>
@@ -63,7 +85,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="updateBy != null">update_by,</if>
             <if test="updateTime != null">update_time,</if>
             <if test="remark != null">remark,</if>
-         </trim>
+        </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="warehouseId != null">#{warehouseId},</if>
             <if test="locationCode != null and locationCode != ''">#{locationCode},</if>
@@ -71,6 +93,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="parentId != null">#{parentId},</if>
             <if test="level != null">#{level},</if>
             <if test="capacity != null">#{capacity},</if>
+            <if test="currentQuantity != null">#{currentQuantity},</if>
             <if test="inboundQuantity != null">#{inboundQuantity},</if>
             <if test="outboundQuantity != null">#{outboundQuantity},</if>
             <if test="locationStatus != null and locationStatus != ''">#{locationStatus},</if>
@@ -79,7 +102,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="updateBy != null">#{updateBy},</if>
             <if test="updateTime != null">#{updateTime},</if>
             <if test="remark != null">#{remark},</if>
-         </trim>
+        </trim>
     </insert>
 
     <update id="updateLocationInfo" parameterType="LocationInfo">
@@ -91,6 +114,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="parentId != null">parent_id = #{parentId},</if>
             <if test="level != null">level = #{level},</if>
             <if test="capacity != null">capacity = #{capacity},</if>
+            <if test="currentQuantity != null">current_quantity = #{currentQuantity},</if>
             <if test="inboundQuantity != null">inbound_quantity = #{inboundQuantity},</if>
             <if test="outboundQuantity != null">outbound_quantity = #{outboundQuantity},</if>
             <if test="locationStatus != null and locationStatus != ''">location_status = #{locationStatus},</if>
@@ -104,11 +128,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </update>
 
     <delete id="deleteLocationInfoById" parameterType="Long">
-        delete from tb_location_info where id = #{id}
+        delete
+        from tb_location_info
+        where id = #{id}
     </delete>
 
     <delete id="deleteLocationInfoByIds" parameterType="String">
-        delete from tb_location_info where id in 
+        delete from tb_location_info where id in
         <foreach item="id" collection="array" open="(" separator="," close=")">
             #{id}
         </foreach>

@@ -72,6 +72,12 @@ public class LocationInfo implements Serializable {
     private BigDecimal capacity;
 
     /**
+     * 当前数量-当前库位拥有的备件数量
+     */
+    @Excel(name = "当前数量")
+    private Long currentQuantity;
+
+    /**
      * 入库总数
      */
     @Excel(name = "入库总数")

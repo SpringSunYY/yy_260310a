@@ -211,7 +211,7 @@
       </el-table-column>
       <el-table-column label="备注" align="center" prop="remark" v-if="columns[17].visible"
                        :show-overflow-tooltip="true"/>
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column fixed="right" width="200" label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
                      v-hasPermi="['manage:inboundOrderInfo:edit']">修改
@@ -588,7 +588,7 @@
           </el-table-column>
           <el-table-column label="入库数量" prop="inboundQuantity" width="150">
             <template #default="scope">
-              <el-input-number style="width: 100%" :min="1" v-model="scope.row.inboundQuantity"
+              <el-input-number style="width: 100%" :min="0" v-model="scope.row.inboundQuantity"
                                placeholder="请输入入库数量"/>
             </template>
           </el-table-column>
@@ -644,7 +644,8 @@
           </el-table-column>
           <el-table-column label="入库单价" prop="unitPrice" width="150">
             <template #default="scope">
-              <el-input-number style="width: 100%" :min="0" :precision="2" v-model="scope.row.unitPrice" placeholder="请输入入库单价"/>
+              <el-input-number style="width: 100%" :min="0" :precision="2" v-model="scope.row.unitPrice"
+                               placeholder="请输入入库单价"/>
             </template>
           </el-table-column>
         </el-table>
@@ -783,6 +784,7 @@ function getList() {
 
 // 取消按钮
 function cancel() {
+  openAudit.value = false;
   open.value = false;
   reset();
 }
@@ -895,7 +897,7 @@ function rowInboundOrderDetailInfoIndex({row, rowIndex}) {
 function handleAddInboundOrderDetailInfo() {
   let obj = {};
   obj.partsCode = "";
-  obj.inboundQuantity = 1;
+  obj.inboundQuantity = 0;
   obj.batchNo = "";
   obj.warehouseId = form.value.warehouseId || null;
   obj.locationId = null;
@@ -1118,7 +1120,7 @@ const handleOrderChange = (orderId) => {
       if (orderData.purchaseOrderDetailInfoList && orderData.purchaseOrderDetailInfoList.length > 0) {
         inboundOrderDetailInfoList.value = orderData.purchaseOrderDetailInfoList.map(item => ({
           partsCode: item.partsCode,
-          inboundQuantity: item.purchaseQuantity - (item.receivedQuantity || 0),
+          inboundQuantity: item.receivedQuantity || 0,
           batchNo: '',
           warehouseId: form.value.warehouseId,
           locationId: null,

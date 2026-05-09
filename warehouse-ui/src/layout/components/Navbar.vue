@@ -65,7 +65,7 @@
 </template>
 
 <script setup>
-import { ElMessageBox } from 'element-plus'
+import {ElMessageBox, ElNotification} from 'element-plus'
 import Breadcrumb from '@/components/Breadcrumb'
 import TopNav from '@/components/TopNav'
 import TopBar from './TopBar'
@@ -81,6 +81,8 @@ import useUserStore from '@/store/modules/user'
 import useLockStore from '@/store/modules/lock'
 import useSettingsStore from '@/store/modules/settings'
 import HeaderNotice from './HeaderNotice'
+import {listWarningInfo} from "@/api/manage/warningInfo.js";
+import {checkPermi} from "@/utils/permission.js";
 
 const route = useRoute()
 const router = useRouter()
@@ -171,6 +173,32 @@ async function toggleTheme(event) {
     settingsStore.toggleTheme()
   }
 }
+
+
+const warningQuery = ref({
+  pageNum: 1,
+  pageSize: 5,
+  warningStatus: 0,
+})
+
+const getWarningList = () => {
+  if (!checkPermi(['manage:warningInfo:list'])) {
+    return
+  }
+  listWarningInfo(warningQuery.value).then(response => {
+    if (!response.rows) return
+    response.rows.forEach(item => {
+      ElNotification({
+        title: '您有一条新的提醒',
+        message: '您有一个警告尚未处理',
+        duration: 5000,
+      })
+    })
+  })
+}
+
+getWarningList()
+
 </script>
 
 <style lang='scss' scoped>

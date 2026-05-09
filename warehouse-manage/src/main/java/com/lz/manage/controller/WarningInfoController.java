@@ -2,6 +2,8 @@ package com.lz.manage.controller;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+import com.lz.common.utils.ThrowUtils;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.access.prepost.PreAuthorize;
 import jakarta.annotation.Resource;
@@ -88,6 +90,7 @@ public class WarningInfoController extends BaseController
     @PostMapping
     public AjaxResult add(@RequestBody WarningInfoInsert warningInfoInsert)
     {
+        ThrowUtils.throwServiceException("禁止添加");
         WarningInfo warningInfo = WarningInfoInsert.insertToObj(warningInfoInsert);
         return toAjax(warningInfoService.insertWarningInfo(warningInfo));
     }

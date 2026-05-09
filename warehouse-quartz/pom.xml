@@ -35,6 +35,11 @@
             <artifactId>warehouse-common</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.lz</groupId>
+            <artifactId>warehouse-manage</artifactId>
+        </dependency>
+
     </dependencies>
 
 </project>

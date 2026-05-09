@@ -79,4 +79,6 @@ public interface IWarningInfoService extends IService<WarningInfo>
      * @return WarningInfoVO集合
      */
     List<WarningInfoVo> convertVoList(List<WarningInfo> warningInfoList);
+
+    void autoSendWarning();
 }

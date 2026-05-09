@@ -80,9 +80,17 @@ public interface StocktakingOrderInfoMapper extends BaseMapper<StocktakingOrderI
 
     /**
      * 通过盘点单主键删除盘点明细信息
-     * 
+     *
      * @param id 盘点单ID
      * @return 结果
      */
     public int deleteStocktakingOrderDetailInfoByStocktakingId(Long id);
+
+    /**
+     * 通过盘点单号查询盘点单
+     *
+     * @param stocktakingNo 盘点单号
+     * @return 盘点单
+     */
+    public StocktakingOrderInfo selectStocktakingOrderInfoByNo(String stocktakingNo);
 }

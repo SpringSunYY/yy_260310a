@@ -44,6 +44,11 @@ public class StocktakingOrderInfo implements Serializable
     @Excel(name = "仓库")
     private Long warehouseId;
 
+    /** 仓库名称 */
+    @TableField(exist = false)
+    @Excel(name = "仓库名称", type = Excel.Type.EXPORT)
+    private String warehouseName;
+
     /** 盘点开始日期 */
     @JsonFormat(pattern = "yyyy-MM-dd")
     @Excel(name = "盘点开始日期", width = 30, dateFormat = "yyyy-MM-dd")
@@ -62,17 +67,27 @@ public class StocktakingOrderInfo implements Serializable
     @Excel(name = "盘点人")
     private Long operatorId;
 
+    /** 盘点人姓名 */
+    @TableField(exist = false)
+    @Excel(name = "盘点人姓名", type = Excel.Type.EXPORT)
+    private String operatorName;
+
     /** 审核人 */
     @Excel(name = "审核人")
     private Long reviewerId;
+
+    /** 审核人姓名 */
+    @TableField(exist = false)
+    @Excel(name = "审核人姓名", type = Excel.Type.EXPORT)
+    private String reviewerName;
 
     /** 审核状态 */
     @Excel(name = "审核状态", dictType = "warehouse_applicant_status")
     private String reviewStatus;
 
     /** 审核时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    @Excel(name = "审核时间", width = 30, dateFormat = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Excel(name = "审核时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss")
     private Date reviewTime;
 
     /** 审批描述 */
@@ -84,8 +99,8 @@ public class StocktakingOrderInfo implements Serializable
     private String createBy;
 
     /** 创建时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    @Excel(name = "创建时间", width = 30, dateFormat = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Excel(name = "创建时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 
     /** 更新人 */
@@ -93,8 +108,8 @@ public class StocktakingOrderInfo implements Serializable
     private String updateBy;
 
     /** 更新时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    @Excel(name = "更新时间", width = 30, dateFormat = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Excel(name = "更新时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss")
     private Date updateTime;
 
     /** 备注 */

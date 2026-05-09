@@ -76,6 +76,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         where stocktaking_id = #{stocktaking_id}
     </select>
 
+    <select id="selectStocktakingOrderInfoByNo" parameterType="String" resultMap="StocktakingOrderInfoResult">
+        <include refid="selectStocktakingOrderInfoVo"/>
+        where stocktaking_no = #{stocktakingNo}
+    </select>
+
     <insert id="insertStocktakingOrderInfo" parameterType="StocktakingOrderInfo" useGeneratedKeys="true" keyProperty="id">
         insert into tb_stocktaking_order_info
         <trim prefix="(" suffix=")" suffixOverrides=",">

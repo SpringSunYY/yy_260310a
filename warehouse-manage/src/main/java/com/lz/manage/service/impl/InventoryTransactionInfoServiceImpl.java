@@ -130,13 +130,9 @@ public class InventoryTransactionInfoServiceImpl extends ServiceImpl<InventoryTr
                 record.setQuantity(changeQuantity);
                 record.setFrozenQuantity(0L);
                 record.setAvailableQuantity(changeQuantity);
-                record.setLastInboundDate(nowDate);
-                record.setCreateTime(nowDate);
                 record.setBatchNo(dto.getBatchNo());
                 record.setExpiryDate(dto.getExpiryDate());
-                if (StringUtils.isNotEmpty(dto.getCreateBy())) {
-                    record.setCreateBy(dto.getCreateBy());
-                }
+                record.setLastInboundDate(nowDate);
                 record.setCreateBy(dto.getCreateBy());
                 record.setCreateTime(nowDate);
                 inventoryRecordInfoService.insertInventoryRecordInfo(record);
@@ -153,6 +149,11 @@ public class InventoryTransactionInfoServiceImpl extends ServiceImpl<InventoryTr
 
                 record.setQuantity(afterQuantity);
                 record.setAvailableQuantity(afterQuantity);
+                if (changeQuantity > 0) {
+                    record.setLastInboundDate(nowDate);
+                } else {
+                    record.setLastOutboundDate(nowDate);
+                }
                 record.setUpdateBy(dto.getCreateBy());
                 record.setUpdateTime(nowDate);
                 inventoryRecordInfoService.updateInventoryRecordInfo(record);

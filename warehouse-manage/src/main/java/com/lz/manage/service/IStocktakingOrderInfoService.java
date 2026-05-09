@@ -64,6 +64,15 @@ public interface IStocktakingOrderInfoService extends IService<StocktakingOrderI
      */
     public int deleteStocktakingOrderInfoById(Long id);
     //endregion
+
+    /**
+     * 审核盘点单
+     *
+     * @param stocktakingOrderInfo 盘点单
+     * @return 结果
+     */
+    public int auditStocktakingOrderInfo(StocktakingOrderInfo stocktakingOrderInfo);
+    //endregion
     /**
      * 获取查询条件
      *

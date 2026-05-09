@@ -42,3 +42,12 @@ export function delStocktakingOrderInfo(id) {
     method: 'delete'
   })
 }
+
+// 审核盘点单
+export function auditStocktakingOrderInfo(data) {
+  return request({
+    url: '/manage/stocktakingOrderInfo/audit',
+    method: 'put',
+    data: data
+  })
+}

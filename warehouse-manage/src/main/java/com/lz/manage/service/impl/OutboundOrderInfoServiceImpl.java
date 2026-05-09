@@ -1,38 +1,33 @@
 package com.lz.manage.service.impl;
 
-import java.util.*;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.stream.Collectors;
-import com.lz.common.utils.StringUtils;
-import java.util.List;
-import java.util.Date;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.lz.manage.model.domain.OutboundOrderDetailInfo;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lz.common.utils.DateUtils;
 import com.lz.common.utils.SecurityUtils;
-import com.lz.common.utils.ThrowUtils;
-import com.lz.manage.enums.*;
-import com.lz.manage.model.domain.*;
-import com.lz.manage.model.dto.inventoryTransactionInfo.InventoryTransactionInfoDto;
-import com.lz.manage.service.*;
-import com.lz.system.service.ISysUserService;
-import com.lz.system.service.ISysDeptService;
-import jakarta.annotation.Resource;
-import org.springframework.stereotype.Service;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import java.math.BigDecimal;
-import java.util.ArrayList;
 import com.lz.common.utils.StringUtils;
-import org.springframework.transaction.annotation.Transactional;
-import com.lz.manage.model.domain.OutboundOrderDetailInfo;
+import com.lz.common.utils.ThrowUtils;
+import com.lz.manage.enums.WarehouseOrderApplicantStatusEnum;
+import com.lz.manage.enums.WarehouseOutboundStatusEnum;
+import com.lz.manage.enums.WarehouseTransactionTypeEnum;
 import com.lz.manage.mapper.OutboundOrderInfoMapper;
+import com.lz.manage.model.domain.OutboundOrderDetailInfo;
 import com.lz.manage.model.domain.OutboundOrderInfo;
-import com.lz.manage.service.IOutboundOrderInfoService;
+import com.lz.manage.model.domain.WarehouseInfo;
+import com.lz.manage.model.dto.inventoryTransactionInfo.InventoryTransactionInfoDto;
 import com.lz.manage.model.dto.outboundOrderInfo.OutboundOrderInfoQuery;
 import com.lz.manage.model.vo.outboundOrderInfo.OutboundOrderInfoVo;
+import com.lz.manage.service.IInventoryTransactionInfoService;
+import com.lz.manage.service.ILocationInfoService;
+import com.lz.manage.service.IOutboundOrderInfoService;
+import com.lz.manage.service.IWarehouseInfoService;
+import com.lz.system.service.ISysDeptService;
+import com.lz.system.service.ISysUserService;
+import jakarta.annotation.Resource;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 出库单Service业务层处理
@@ -41,8 +36,7 @@ import com.lz.manage.model.vo.outboundOrderInfo.OutboundOrderInfoVo;
  * @date 2026-05-08
  */
 @Service
-public class OutboundOrderInfoServiceImpl extends ServiceImpl<OutboundOrderInfoMapper, OutboundOrderInfo> implements IOutboundOrderInfoService
-{
+public class OutboundOrderInfoServiceImpl extends ServiceImpl<OutboundOrderInfoMapper, OutboundOrderInfo> implements IOutboundOrderInfoService {
 
     @Resource
     private OutboundOrderInfoMapper outboundOrderInfoMapper;
@@ -63,6 +57,7 @@ public class OutboundOrderInfoServiceImpl extends ServiceImpl<OutboundOrderInfoM
     private IInventoryTransactionInfoService inventoryTransactionInfoService;
 
     //region mybatis代码
+
     /**
      * 查询出库单
      *
@@ -70,8 +65,7 @@ public class OutboundOrderInfoServiceImpl extends ServiceImpl<OutboundOrderInfoM
      * @return 出库单
      */
     @Override
-    public OutboundOrderInfo selectOutboundOrderInfoById(Long id)
-    {
+    public OutboundOrderInfo selectOutboundOrderInfoById(Long id) {
         return outboundOrderInfoMapper.selectOutboundOrderInfoById(id);
     }
 
@@ -82,8 +76,7 @@ public class OutboundOrderInfoServiceImpl extends ServiceImpl<OutboundOrderInfoM
      * @return 出库单
      */
     @Override
-    public List<OutboundOrderInfo> selectOutboundOrderInfoList(OutboundOrderInfo outboundOrderInfo)
-    {
+    public List<OutboundOrderInfo> selectOutboundOrderInfoList(OutboundOrderInfo outboundOrderInfo) {
         List<OutboundOrderInfo> outboundOrderInfoList = outboundOrderInfoMapper.selectOutboundOrderInfoList(outboundOrderInfo);
         for (OutboundOrderInfo info : outboundOrderInfoList) {
             // 获取仓库名称
@@ -133,8 +126,7 @@ public class OutboundOrderInfoServiceImpl extends ServiceImpl<OutboundOrderInfoM
      */
     @Transactional
     @Override
-    public int insertOutboundOrderInfo(OutboundOrderInfo outboundOrderInfo)
-    {
+    public int insertOutboundOrderInfo(OutboundOrderInfo outboundOrderInfo) {
         // 设置默认值
         outboundOrderInfo.setOutboundStatus(WarehouseOutboundStatusEnum.WAREHOUSE_OUTBOUND_STATUS_0.getValue());
         outboundOrderInfo.setReviewStatus(WarehouseOrderApplicantStatusEnum.WAREHOUSE_ORDER_APPLICANT_STATUS_0.getValue());
@@ -194,14 +186,15 @@ public class OutboundOrderInfoServiceImpl extends ServiceImpl<OutboundOrderInfoM
      */
     @Transactional
     @Override
-    public int updateOutboundOrderInfo(OutboundOrderInfo outboundOrderInfo)
-    {
+    public int updateOutboundOrderInfo(OutboundOrderInfo outboundOrderInfo) {
         // 判断出库单是否存在
         OutboundOrderInfo existingOutboundOrder = outboundOrderInfoMapper.selectOutboundOrderInfoById(outboundOrderInfo.getId());
         ThrowUtils.throwIf(StringUtils.isNull(existingOutboundOrder), "出库单不存在");
 
-        // 判断出库单是否已审核通过
-        ThrowUtils.throwIf(WarehouseOrderApplicantStatusEnum.WAREHOUSE_ORDER_APPLICANT_STATUS_1.getValue().equals(existingOutboundOrder.getReviewStatus()), "已审核通过的出库单不可修改");
+        // 判断出库单是否已审核（审核通过或审核拒绝都不能修改）
+        ThrowUtils.throwIf(
+                WarehouseOrderApplicantStatusEnum.WAREHOUSE_ORDER_APPLICANT_STATUS_1.getValue().equals(existingOutboundOrder.getReviewStatus()),
+                "出库单已同意，禁止修改");
 
         // 校验出库单号是否存在（排除自身）
         OutboundOrderInfo outboundOrderInfoByNo = outboundOrderInfoMapper.selectOutboundOrderInfoByNo(outboundOrderInfo.getOutboundNo());
@@ -251,9 +244,8 @@ public class OutboundOrderInfoServiceImpl extends ServiceImpl<OutboundOrderInfoM
         ThrowUtils.throwIf(StringUtils.isNull(existingOutboundOrder), "出库单不存在");
 
         // 判断出库单是否已审核
-        ThrowUtils.throwIf(WarehouseOrderApplicantStatusEnum.WAREHOUSE_ORDER_APPLICANT_STATUS_1.getValue().equals(existingOutboundOrder.getReviewStatus())
-                        || WarehouseOrderApplicantStatusEnum.WAREHOUSE_ORDER_APPLICANT_STATUS_2.getValue().equals(existingOutboundOrder.getReviewStatus()),
-                "出库单已审核，不可重复审核");
+        ThrowUtils.throwIf(WarehouseOrderApplicantStatusEnum.WAREHOUSE_ORDER_APPLICANT_STATUS_1.getValue().equals(existingOutboundOrder.getReviewStatus()),
+                "出库单已同意，不可重复审核");
 
         // 校验明细
         validateOutboundOrderDetailInfo(outboundOrderInfo);
@@ -322,13 +314,13 @@ public class OutboundOrderInfoServiceImpl extends ServiceImpl<OutboundOrderInfoM
      */
     @Transactional
     @Override
-    public int deleteOutboundOrderInfoByIds(Long[] ids)
-    {
+    public int deleteOutboundOrderInfoByIds(Long[] ids) {
         for (Long id : ids) {
             OutboundOrderInfo existingOutboundOrder = outboundOrderInfoMapper.selectOutboundOrderInfoById(id);
             ThrowUtils.throwIf(StringUtils.isNull(existingOutboundOrder), "出库单不存在");
             // 判断出库单是否已审核通过
-            ThrowUtils.throwIf(WarehouseOrderApplicantStatusEnum.WAREHOUSE_ORDER_APPLICANT_STATUS_1.getValue().equals(existingOutboundOrder.getReviewStatus()), "已审核通过的出库单不可删除");
+            ThrowUtils.throwIf(WarehouseOrderApplicantStatusEnum.WAREHOUSE_ORDER_APPLICANT_STATUS_1.getValue().equals(existingOutboundOrder.getReviewStatus()),
+                    "已审核通过的出库单不可删除");
         }
         outboundOrderInfoMapper.deleteOutboundOrderDetailInfoByOutboundIds(ids);
         return outboundOrderInfoMapper.deleteOutboundOrderInfoByIds(ids);
@@ -342,8 +334,7 @@ public class OutboundOrderInfoServiceImpl extends ServiceImpl<OutboundOrderInfoM
      */
     @Transactional
     @Override
-    public int deleteOutboundOrderInfoById(Long id)
-    {
+    public int deleteOutboundOrderInfoById(Long id) {
         OutboundOrderInfo existingOutboundOrder = outboundOrderInfoMapper.selectOutboundOrderInfoById(id);
         ThrowUtils.throwIf(StringUtils.isNull(existingOutboundOrder), "出库单不存在");
         // 判断出库单是否已审核通过
@@ -357,15 +348,12 @@ public class OutboundOrderInfoServiceImpl extends ServiceImpl<OutboundOrderInfoM
      *
      * @param outboundOrderInfo 出库单对象
      */
-    public void insertOutboundOrderDetailInfo(OutboundOrderInfo outboundOrderInfo)
-    {
+    public void insertOutboundOrderDetailInfo(OutboundOrderInfo outboundOrderInfo) {
         List<OutboundOrderDetailInfo> outboundOrderDetailInfoList = outboundOrderInfo.getOutboundOrderDetailInfoList();
         Long id = outboundOrderInfo.getId();
-        if (StringUtils.isNotNull(outboundOrderDetailInfoList))
-        {
+        if (StringUtils.isNotNull(outboundOrderDetailInfoList)) {
             List<OutboundOrderDetailInfo> list = new ArrayList<OutboundOrderDetailInfo>();
-            for (OutboundOrderDetailInfo outboundOrderDetailInfo : outboundOrderDetailInfoList)
-            {
+            for (OutboundOrderDetailInfo outboundOrderDetailInfo : outboundOrderDetailInfoList) {
                 outboundOrderDetailInfo.setOutboundId(id);
                 if (StringUtils.isNotEmpty(outboundOrderInfo.getCreateBy())) {
                     outboundOrderDetailInfo.setCreateBy(outboundOrderInfo.getCreateBy());
@@ -381,15 +369,15 @@ public class OutboundOrderInfoServiceImpl extends ServiceImpl<OutboundOrderInfoM
                 }
                 list.add(outboundOrderDetailInfo);
             }
-            if (!list.isEmpty())
-            {
+            if (!list.isEmpty()) {
                 outboundOrderInfoMapper.batchOutboundOrderDetailInfo(list);
             }
         }
     }
+
     //endregion
     @Override
-    public QueryWrapper<OutboundOrderInfo> getQueryWrapper(OutboundOrderInfoQuery outboundOrderInfoQuery){
+    public QueryWrapper<OutboundOrderInfo> getQueryWrapper(OutboundOrderInfoQuery outboundOrderInfoQuery) {
         QueryWrapper<OutboundOrderInfo> queryWrapper = new QueryWrapper<>();
         //如果不使用params可以删除
         Map<String, Object> params = outboundOrderInfoQuery.getParams();
@@ -397,31 +385,31 @@ public class OutboundOrderInfoServiceImpl extends ServiceImpl<OutboundOrderInfoM
             params = new HashMap<>();
         }
         Long id = outboundOrderInfoQuery.getId();
-        queryWrapper.eq( StringUtils.isNotNull(id),"id",id);
+        queryWrapper.eq(StringUtils.isNotNull(id), "id", id);
 
         String outboundNo = outboundOrderInfoQuery.getOutboundNo();
-        queryWrapper.eq(StringUtils.isNotEmpty(outboundNo) ,"outbound_no",outboundNo);
+        queryWrapper.eq(StringUtils.isNotEmpty(outboundNo), "outbound_no", outboundNo);
 
         String outboundType = outboundOrderInfoQuery.getOutboundType();
-        queryWrapper.eq(StringUtils.isNotEmpty(outboundType) ,"outbound_type",outboundType);
+        queryWrapper.eq(StringUtils.isNotEmpty(outboundType), "outbound_type", outboundType);
 
         Long warehouseId = outboundOrderInfoQuery.getWarehouseId();
-        queryWrapper.eq(StringUtils.isNotNull(warehouseId) ,"warehouse_id",warehouseId);
+        queryWrapper.eq(StringUtils.isNotNull(warehouseId), "warehouse_id", warehouseId);
 
         Date outboundDate = outboundOrderInfoQuery.getOutboundDate();
-        queryWrapper.between(StringUtils.isNotNull(params.get("beginOutboundDate"))&&StringUtils.isNotNull(params.get("endOutboundDate")),"outbound_date",params.get("beginOutboundDate"),params.get("endOutboundDate"));
+        queryWrapper.between(StringUtils.isNotNull(params.get("beginOutboundDate")) && StringUtils.isNotNull(params.get("endOutboundDate")), "outbound_date", params.get("beginOutboundDate"), params.get("endOutboundDate"));
 
         String outboundStatus = outboundOrderInfoQuery.getOutboundStatus();
-        queryWrapper.eq(StringUtils.isNotEmpty(outboundStatus) ,"outbound_status",outboundStatus);
+        queryWrapper.eq(StringUtils.isNotEmpty(outboundStatus), "outbound_status", outboundStatus);
 
         String reviewStatus = outboundOrderInfoQuery.getReviewStatus();
-        queryWrapper.eq(StringUtils.isNotEmpty(reviewStatus) ,"review_status",reviewStatus);
+        queryWrapper.eq(StringUtils.isNotEmpty(reviewStatus), "review_status", reviewStatus);
 
         String createBy = outboundOrderInfoQuery.getCreateBy();
-        queryWrapper.like(StringUtils.isNotEmpty(createBy) ,"create_by",createBy);
+        queryWrapper.like(StringUtils.isNotEmpty(createBy), "create_by", createBy);
 
         Date createTime = outboundOrderInfoQuery.getCreateTime();
-        queryWrapper.between(StringUtils.isNotNull(params.get("beginCreateTime"))&&StringUtils.isNotNull(params.get("endCreateTime")),"create_time",params.get("beginCreateTime"),params.get("endCreateTime"));
+        queryWrapper.between(StringUtils.isNotNull(params.get("beginCreateTime")) && StringUtils.isNotNull(params.get("endCreateTime")), "create_time", params.get("beginCreateTime"), params.get("endCreateTime"));
 
         return queryWrapper;
     }

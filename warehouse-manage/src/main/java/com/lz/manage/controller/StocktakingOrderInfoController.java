@@ -114,4 +114,15 @@ public class StocktakingOrderInfoController extends BaseController
     {
         return toAjax(stocktakingOrderInfoService.deleteStocktakingOrderInfoByIds(ids));
     }
+
+    /**
+     * 审核盘点单
+     */
+    @PreAuthorize("@ss.hasPermi('manage:stocktakingOrderInfo:audit')")
+    @Log(title = "盘点单", businessType = BusinessType.UPDATE)
+    @PutMapping("/audit")
+    public AjaxResult audit(@RequestBody StocktakingOrderInfo stocktakingOrderInfo)
+    {
+        return toAjax(stocktakingOrderInfoService.auditStocktakingOrderInfo(stocktakingOrderInfo));
+    }
 }

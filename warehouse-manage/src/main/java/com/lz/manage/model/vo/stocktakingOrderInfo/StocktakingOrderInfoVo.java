@@ -34,6 +34,9 @@ public class StocktakingOrderInfoVo implements Serializable
     /** 仓库 */
     private Long warehouseId;
 
+    /** 仓库名称 */
+    private String warehouseName;
+
     /** 盘点开始日期 */
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date startDate;
@@ -48,14 +51,20 @@ public class StocktakingOrderInfoVo implements Serializable
     /** 盘点人 */
     private Long operatorId;
 
+    /** 盘点人姓名 */
+    private String operatorName;
+
     /** 审核人 */
     private Long reviewerId;
+
+    /** 审核人姓名 */
+    private String reviewerName;
 
     /** 审核状态 */
     private String reviewStatus;
 
     /** 审核时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date reviewTime;
 
     /** 审批描述 */
@@ -65,14 +74,14 @@ public class StocktakingOrderInfoVo implements Serializable
     private String createBy;
 
     /** 创建时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 
     /** 更新人 */
     private String updateBy;
 
     /** 更新时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date updateTime;
 
     /** 备注 */

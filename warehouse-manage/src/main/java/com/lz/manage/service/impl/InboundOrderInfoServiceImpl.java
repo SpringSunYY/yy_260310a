@@ -200,8 +200,10 @@ public class InboundOrderInfoServiceImpl extends ServiceImpl<InboundOrderInfoMap
         InboundOrderInfo existingInboundOrder = inboundOrderInfoMapper.selectInboundOrderInfoById(inboundOrderInfo.getId());
         ThrowUtils.throwIf(StringUtils.isNull(existingInboundOrder), "入库单不存在");
 
-        // 判断入库单是否已审核通过
-        ThrowUtils.throwIf(existingInboundOrder.getReviewStatus().equals(WarehouseOrderApplicantStatusEnum.WAREHOUSE_ORDER_APPLICANT_STATUS_1.getValue()), "已审核通过的入库单不可修改");
+        // 判断入库单是否已审核（审核通过或审核拒绝都不能修改）
+        ThrowUtils.throwIf(WarehouseOrderApplicantStatusEnum.WAREHOUSE_ORDER_APPLICANT_STATUS_1.getValue().equals(existingInboundOrder.getReviewStatus())
+                        || WarehouseOrderApplicantStatusEnum.WAREHOUSE_ORDER_APPLICANT_STATUS_2.getValue().equals(existingInboundOrder.getReviewStatus()),
+                "入库单已审核，禁止修改");
 
         // 校验入库单号是否存在（排除自身）
         InboundOrderInfo inboundOrderInfoByNo = inboundOrderInfoMapper.selectInboundOrderInfoByNo(inboundOrderInfo.getInboundNo());

@@ -64,6 +64,15 @@ public interface IOutboundOrderInfoService extends IService<OutboundOrderInfo>
      */
     public int deleteOutboundOrderInfoById(Long id);
     //endregion
+
+    /**
+     * 审核出库单
+     *
+     * @param outboundOrderInfo 出库单
+     * @return 结果
+     */
+    int auditOutboundOrderInfo(OutboundOrderInfo outboundOrderInfo);
+
     /**
      * 获取查询条件
      *

@@ -34,8 +34,11 @@ public class InventoryRecordInfo implements Serializable {
     /**
      * 备件编号
      */
-    @Excel(name = "备件编号")
+    @Excel(name = "备件编号", type = Excel.Type.IMPORT)
     private String partsCode;
+    @TableField(exist = false)
+    @Excel(name = "备件编号", type = Excel.Type.EXPORT)
+    private String partsName;
 
     /**
      * 仓库

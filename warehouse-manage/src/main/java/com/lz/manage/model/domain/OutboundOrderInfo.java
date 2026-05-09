@@ -44,13 +44,28 @@ public class OutboundOrderInfo implements Serializable
     @Excel(name = "仓库")
     private Long warehouseId;
 
+    /** 仓库名称 */
+    @TableField(exist = false)
+    @Excel(name = "仓库名称", type = Excel.Type.EXPORT)
+    private String warehouseName;
+
     /** 领用人 */
     @Excel(name = "领用人")
     private Long recipientId;
 
+    /** 领用人名称 */
+    @TableField(exist = false)
+    @Excel(name = "领用人名称", type = Excel.Type.EXPORT)
+    private String recipientName;
+
     /** 领用部门 */
     @Excel(name = "领用部门")
     private Long recipientDeptId;
+
+    /** 领用部门名称 */
+    @TableField(exist = false)
+    @Excel(name = "领用部门名称", type = Excel.Type.EXPORT)
+    private String recipientDeptName;
 
     /** 出库日期 */
     @JsonFormat(pattern = "yyyy-MM-dd")
@@ -69,9 +84,19 @@ public class OutboundOrderInfo implements Serializable
     @Excel(name = "经办人")
     private Long operatorId;
 
+    /** 经办人名称 */
+    @TableField(exist = false)
+    @Excel(name = "经办人名称", type = Excel.Type.EXPORT)
+    private String operatorName;
+
     /** 审核人 */
     @Excel(name = "审核人")
     private Long reviewerId;
+
+    /** 审核人名称 */
+    @TableField(exist = false)
+    @Excel(name = "审核人名称", type = Excel.Type.EXPORT)
+    private String reviewerName;
 
     /** 审核状态 */
     @Excel(name = "审核状态", dictType = "warehouse_applicant_status")

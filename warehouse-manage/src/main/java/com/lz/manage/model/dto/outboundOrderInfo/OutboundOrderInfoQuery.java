@@ -1,18 +1,18 @@
 package com.lz.manage.model.dto.outboundOrderInfo;
 
-import java.util.Map;
-import java.io.Serializable;
-import java.util.List;
-import java.util.Date;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.lz.manage.model.domain.OutboundOrderDetailInfo;
-import lombok.Data;
-import java.util.Date;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import org.springframework.beans.BeanUtils;
-import com.baomidou.mybatisplus.annotation.TableField;
+import com.lz.manage.model.domain.OutboundOrderDetailInfo;
 import com.lz.manage.model.domain.OutboundOrderInfo;
+import lombok.Data;
+import org.springframework.beans.BeanUtils;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
 /**
  * 出库单Query对象 tb_outbound_order_info
  *
@@ -20,43 +20,69 @@ import com.lz.manage.model.domain.OutboundOrderInfo;
  * @date 2026-05-08
  */
 @Data
-public class OutboundOrderInfoQuery implements Serializable
-{
+public class OutboundOrderInfoQuery implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /** 编号 */
+    /**
+     * 编号
+     */
     private Long id;
 
-    /** 出库单号 */
+    /**
+     * 出库单号
+     */
     private String outboundNo;
+    /**
+     * 仓库
+     */
+    private Long warehouseId;
 
-    /** 出库类型 */
+
+    /**
+     * 出库类型
+     */
     private String outboundType;
 
-    /** 出库日期 */
+    /**
+     * 出库日期
+     */
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date outboundDate;
 
-    /** 出库状态 */
+    /**
+     * 出库状态
+     */
     private String outboundStatus;
 
-    /** 是否可归还 */
+    /**
+     * 是否可归还
+     */
     private String isReturnable;
 
-    /** 审核状态 */
+    /**
+     * 审核状态
+     */
     private String reviewStatus;
 
-    /** 创建人 */
+    /**
+     * 创建人
+     */
     private String createBy;
 
-    /** 创建时间 */
+    /**
+     * 创建时间
+     */
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date createTime;
 
-    /** 出库明细信息 */
+    /**
+     * 出库明细信息
+     */
     private List<OutboundOrderDetailInfo> outboundOrderDetailInfoList;
 
-    /** 请求参数 */
+    /**
+     * 请求参数
+     */
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     @TableField(exist = false)
     private Map<String, Object> params;

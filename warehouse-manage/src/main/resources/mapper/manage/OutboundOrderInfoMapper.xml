@@ -52,10 +52,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <select id="selectOutboundOrderInfoList" parameterType="OutboundOrderInfo" resultMap="OutboundOrderInfoResult">
         <include refid="selectOutboundOrderInfoVo"/>
-        <where>  
+        <where>
             <if test="id != null "> and id = #{id}</if>
             <if test="outboundNo != null  and outboundNo != ''"> and outbound_no = #{outboundNo}</if>
             <if test="outboundType != null  and outboundType != ''"> and outbound_type = #{outboundType}</if>
+            <if test="warehouseId != null"> and warehouse_id = #{warehouseId}</if>
             <if test="params.beginOutboundDate != null and params.beginOutboundDate != '' and params.endOutboundDate != null and params.endOutboundDate != ''"> and DATE_FORMAT(outbound_date, '%Y-%m-%d') between #{params.beginOutboundDate} and #{params.endOutboundDate}</if>
             <if test="outboundStatus != null  and outboundStatus != ''"> and outbound_status = #{outboundStatus}</if>
             <if test="isReturnable != null  and isReturnable != ''"> and is_returnable = #{isReturnable}</if>
@@ -69,6 +70,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         select id, outbound_no, outbound_type, warehouse_id, recipient_id, recipient_dept_id, outbound_date, outbound_status, is_returnable, operator_id, reviewer_id, review_status, review_time, review_remark, create_by, create_time, update_by, update_time, remark
         from tb_outbound_order_info
         where id = #{id}
+    </select>
+
+    <select id="selectOutboundOrderInfoByNo" parameterType="String" resultMap="OutboundOrderInfoResult">
+        select id, outbound_no, outbound_type, warehouse_id, recipient_id, recipient_dept_id, outbound_date, outbound_status, is_returnable, operator_id, reviewer_id, review_status, review_time, review_remark, create_by, create_time, update_by, update_time, remark
+        from tb_outbound_order_info
+        where outbound_no = #{outboundNo}
     </select>
 
     <select id="selectOutboundOrderDetailInfoList" resultMap="OutboundOrderDetailInfoResult">

@@ -114,7 +114,7 @@
     <el-table v-loading="loading" :data="inventoryRecordInfoList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center"/>
       <el-table-column label="记录ID" align="center" prop="id" v-if="columns[0].visible" :show-overflow-tooltip="true"/>
-      <el-table-column label="备件编号" align="center" prop="partsCode" v-if="columns[1].visible"
+      <el-table-column label="备件编号" align="center" prop="partsName" v-if="columns[1].visible"
                        :show-overflow-tooltip="true"/>
       <el-table-column label="仓库" align="center" prop="warehouseName" v-if="columns[2].visible"
                        :show-overflow-tooltip="true"/>

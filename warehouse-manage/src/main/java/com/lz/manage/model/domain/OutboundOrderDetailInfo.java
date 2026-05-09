@@ -7,10 +7,11 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import com.lz.common.annotation.Excel;
 import com.lz.common.core.domain.BaseEntity;
+import com.baomidou.mybatisplus.annotation.TableField;
 
 /**
  * 出库明细对象 tb_outbound_order_detail_info
- * 
+ *
  * @author YY
  * @date 2026-05-08
  */
@@ -29,6 +30,11 @@ public class OutboundOrderDetailInfo extends BaseEntity
     @Excel(name = "备件编号")
     private String partsCode;
 
+    /** 备件名称 */
+    @TableField(exist = false)
+    @Excel(name = "备件名称", type = Excel.Type.EXPORT)
+    private String partsName;
+
     /** 出库数量 */
     @Excel(name = "出库数量")
     private Long outboundQuantity;
@@ -45,79 +51,115 @@ public class OutboundOrderDetailInfo extends BaseEntity
     @Excel(name = "库位")
     private Long locationId;
 
+    /** 库位名称 */
+    @TableField(exist = false)
+    @Excel(name = "库位名称", type = Excel.Type.EXPORT)
+    private String locationName;
+
+    /** 可用数量 */
+    @TableField(exist = false)
+    @Excel(name = "可用数量", type = Excel.Type.EXPORT)
+    private Long availableQuantity;
+
     /** 出库单价 */
     @Excel(name = "出库单价")
     private BigDecimal unitPrice;
 
-    public void setId(Long id) 
+    public void setId(Long id)
     {
         this.id = id;
     }
 
-    public Long getId() 
+    public Long getId()
     {
         return id;
     }
-    public void setOutboundId(Long outboundId) 
+    public void setOutboundId(Long outboundId)
     {
         this.outboundId = outboundId;
     }
 
-    public Long getOutboundId() 
+    public Long getOutboundId()
     {
         return outboundId;
     }
-    public void setPartsCode(String partsCode) 
+    public void setPartsCode(String partsCode)
     {
         this.partsCode = partsCode;
     }
 
-    public String getPartsCode() 
+    public String getPartsCode()
     {
         return partsCode;
     }
-    public void setOutboundQuantity(Long outboundQuantity) 
+
+    public String getPartsName() {
+        return partsName;
+    }
+
+    public void setPartsName(String partsName) {
+        this.partsName = partsName;
+    }
+
+    public void setOutboundQuantity(Long outboundQuantity)
     {
         this.outboundQuantity = outboundQuantity;
     }
 
-    public Long getOutboundQuantity() 
+    public Long getOutboundQuantity()
     {
         return outboundQuantity;
     }
-    public void setBatchNo(String batchNo) 
+    public void setBatchNo(String batchNo)
     {
         this.batchNo = batchNo;
     }
 
-    public String getBatchNo() 
+    public String getBatchNo()
     {
         return batchNo;
     }
-    public void setWarehouseId(Long warehouseId) 
+    public void setWarehouseId(Long warehouseId)
     {
         this.warehouseId = warehouseId;
     }
 
-    public Long getWarehouseId() 
+    public Long getWarehouseId()
     {
         return warehouseId;
     }
-    public void setLocationId(Long locationId) 
+    public void setLocationId(Long locationId)
     {
         this.locationId = locationId;
     }
 
-    public Long getLocationId() 
+    public Long getLocationId()
     {
         return locationId;
     }
-    public void setUnitPrice(BigDecimal unitPrice) 
+
+    public String getLocationName() {
+        return locationName;
+    }
+
+    public void setLocationName(String locationName) {
+        this.locationName = locationName;
+    }
+
+    public Long getAvailableQuantity() {
+        return availableQuantity;
+    }
+
+    public void setAvailableQuantity(Long availableQuantity) {
+        this.availableQuantity = availableQuantity;
+    }
+
+    public void setUnitPrice(BigDecimal unitPrice)
     {
         this.unitPrice = unitPrice;
     }
 
-    public BigDecimal getUnitPrice() 
+    public BigDecimal getUnitPrice()
     {
         return unitPrice;
     }

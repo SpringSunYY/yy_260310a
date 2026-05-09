@@ -105,6 +105,17 @@ public class OutboundOrderInfoController extends BaseController
     }
 
     /**
+     * 审核出库单
+     */
+    @PreAuthorize("@ss.hasPermi('manage:outboundOrderInfo:audit')")
+    @Log(title = "出库单", businessType = BusinessType.UPDATE)
+    @PutMapping("/audit")
+    public AjaxResult audit(@RequestBody OutboundOrderInfo outboundOrderInfo)
+    {
+        return toAjax(outboundOrderInfoService.auditOutboundOrderInfo(outboundOrderInfo));
+    }
+
+    /**
      * 删除出库单
      */
     @PreAuthorize("@ss.hasPermi('manage:outboundOrderInfo:remove')")

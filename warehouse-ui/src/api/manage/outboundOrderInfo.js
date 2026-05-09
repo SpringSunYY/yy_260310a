@@ -42,3 +42,13 @@ export function delOutboundOrderInfo(id) {
     method: 'delete'
   })
 }
+
+// 审核出库单
+export function auditOutboundOrderInfo(data) {
+  return request({
+    url: '/manage/outboundOrderInfo/audit',
+    method: 'put',
+    data: data
+  })
+}
+

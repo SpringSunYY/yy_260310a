@@ -27,6 +27,7 @@ public class InventoryTransactionInfoVo implements Serializable {
      * 备件编号
      */
     private String partsCode;
+    private String partsName;
 
     /**
      * 仓库

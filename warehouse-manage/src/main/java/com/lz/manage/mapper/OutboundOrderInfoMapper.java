@@ -22,6 +22,14 @@ public interface OutboundOrderInfoMapper extends BaseMapper<OutboundOrderInfo>
     public OutboundOrderInfo selectOutboundOrderInfoById(Long id);
 
     /**
+     * 通过出库单号查询出库单
+     *
+     * @param outboundNo 出库单号
+     * @return 出库单
+     */
+    public OutboundOrderInfo selectOutboundOrderInfoByNo(String outboundNo);
+
+    /**
      * 查询出库单列表
      * 
      * @param outboundOrderInfo 出库单

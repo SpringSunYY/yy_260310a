@@ -73,6 +73,10 @@ public class InventoryTransactionInfoServiceImpl extends ServiceImpl<InventoryTr
             if (StringUtils.isNotNull(locationInfo)) {
                 info.setLocationName(locationInfo.getLocationName());
             }
+            SparePartsInfo sparePartsInfo = sparePartsInfoService.selectSparePartsInfoByCode(info.getPartsCode());
+            if (StringUtils.isNotNull(sparePartsInfo)) {
+                info.setPartsName(sparePartsInfo.getPartsName());
+            }
         }
         return inventoryTransactionInfos;
     }

@@ -47,6 +47,11 @@ public class SparePartsInfoServiceImpl extends ServiceImpl<SparePartsInfoMapper,
         return sparePartsInfoMapper.selectSparePartsInfoById(id);
     }
 
+    @Override
+    public SparePartsInfo selectSparePartsInfoByCode(String partsCode) {
+        return sparePartsInfoMapper.selectSparePartsInfoByCode(partsCode);
+    }
+
     /**
      * 查询备品备件信息列表
      *

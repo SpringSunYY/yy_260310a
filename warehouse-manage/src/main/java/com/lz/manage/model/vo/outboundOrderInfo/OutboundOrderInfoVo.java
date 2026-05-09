@@ -34,11 +34,20 @@ public class OutboundOrderInfoVo implements Serializable
     /** 仓库 */
     private Long warehouseId;
 
+    /** 仓库名称 */
+    private String warehouseName;
+
     /** 领用人 */
     private Long recipientId;
 
+    /** 领用人名称 */
+    private String recipientName;
+
     /** 领用部门 */
     private Long recipientDeptId;
+
+    /** 领用部门名称 */
+    private String recipientDeptName;
 
     /** 出库日期 */
     @JsonFormat(pattern = "yyyy-MM-dd")
@@ -53,14 +62,20 @@ public class OutboundOrderInfoVo implements Serializable
     /** 经办人 */
     private Long operatorId;
 
+    /** 经办人名称 */
+    private String operatorName;
+
     /** 审核人 */
     private Long reviewerId;
+
+    /** 审核人名称 */
+    private String reviewerName;
 
     /** 审核状态 */
     private String reviewStatus;
 
     /** 审核时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date reviewTime;
 
     /** 审批描述 */
@@ -70,14 +85,14 @@ public class OutboundOrderInfoVo implements Serializable
     private String createBy;
 
     /** 创建时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 
     /** 更新人 */
     private String updateBy;
 
     /** 更新时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date updateTime;
 
     /** 备注 */

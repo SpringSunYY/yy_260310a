@@ -7,11 +7,13 @@ import com.lz.common.utils.StringUtils;
 import com.lz.manage.mapper.InventoryRecordInfoMapper;
 import com.lz.manage.model.domain.InventoryRecordInfo;
 import com.lz.manage.model.domain.LocationInfo;
+import com.lz.manage.model.domain.SparePartsInfo;
 import com.lz.manage.model.domain.WarehouseInfo;
 import com.lz.manage.model.dto.inventoryRecordInfo.InventoryRecordInfoQuery;
 import com.lz.manage.model.vo.inventoryRecordInfo.InventoryRecordInfoVo;
 import com.lz.manage.service.IInventoryRecordInfoService;
 import com.lz.manage.service.ILocationInfoService;
+import com.lz.manage.service.ISparePartsInfoService;
 import com.lz.manage.service.IWarehouseInfoService;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
@@ -36,6 +38,9 @@ public class InventoryRecordInfoServiceImpl extends ServiceImpl<InventoryRecordI
 
     @Resource
     private ILocationInfoService locationInfoService;
+
+    @Resource
+    private ISparePartsInfoService sparePartsInfoService;
 
     //region mybatis代码
 
@@ -67,6 +72,10 @@ public class InventoryRecordInfoServiceImpl extends ServiceImpl<InventoryRecordI
             LocationInfo locationInfo = locationInfoService.selectLocationInfoById(info.getLocationId());
             if (StringUtils.isNotNull(locationInfo)) {
                 info.setLocationName(locationInfo.getLocationName());
+            }
+            SparePartsInfo sparePartsInfo = sparePartsInfoService.selectSparePartsInfoByCode(info.getPartsCode());
+            if (StringUtils.isNotNull(sparePartsInfo)) {
+                info.setPartsName(sparePartsInfo.getPartsName());
             }
         }
         return inventoryRecordInfos;

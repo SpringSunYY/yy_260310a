@@ -24,6 +24,9 @@ public interface ISparePartsInfoService extends IService<SparePartsInfo>
      */
     public SparePartsInfo selectSparePartsInfoById(Long id);
 
+    SparePartsInfo selectSparePartsInfoByCode(String partsCode);
+
+
     /**
      * 查询备品备件信息列表
      * 

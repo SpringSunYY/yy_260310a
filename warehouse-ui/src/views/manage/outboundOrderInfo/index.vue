@@ -883,7 +883,7 @@ const userQueryParams = reactive({
   pageNum: 1,
   pageSize: 100,
   userName: null,
-  roleId: 101,
+  roleId: 2,
 });
 const getUserList = () => {
   userLoading.value = true;
@@ -906,7 +906,7 @@ const operatorQueryParams = reactive({
   pageNum: 1,
   pageSize: 100,
   userName: null,
-  roleId: 101,
+  roleId: 100,
 });
 const getOperatorList = () => {
   operatorLoading.value = true;

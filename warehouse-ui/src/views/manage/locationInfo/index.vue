@@ -151,32 +151,34 @@
       </el-table-column>
       <el-table-column label="容量" align="center" prop="capacity" v-if="columns[6].visible"
                        :show-overflow-tooltip="true"/>
-      <el-table-column label="入库总数" align="center" prop="inboundQuantity" v-if="columns[7].visible"
+      <el-table-column label="当前数量" align="center" prop="currentQuantity" v-if="columns[7].visible"
                        :show-overflow-tooltip="true"/>
-      <el-table-column label="出库总数" align="center" prop="outboundQuantity" v-if="columns[8].visible"
+      <el-table-column label="入库总数" align="center" prop="inboundQuantity" v-if="columns[8].visible"
                        :show-overflow-tooltip="true"/>
-      <el-table-column label="状态" align="center" prop="locationStatus" v-if="columns[9].visible">
+      <el-table-column label="出库总数" align="center" prop="outboundQuantity" v-if="columns[9].visible"
+                       :show-overflow-tooltip="true"/>
+      <el-table-column label="状态" align="center" prop="locationStatus" v-if="columns[10].visible">
         <template #default="scope">
           <dict-tag :options="warehouse_common_status" :value="scope.row.locationStatus"/>
         </template>
       </el-table-column>
-      <el-table-column label="创建人" align="center" prop="createBy" v-if="columns[10].visible"
+      <el-table-column label="创建人" align="center" prop="createBy" v-if="columns[11].visible"
                        :show-overflow-tooltip="true"/>
-      <el-table-column label="创建时间" align="center" prop="createTime" width="180" v-if="columns[11].visible"
+      <el-table-column label="创建时间" align="center" prop="createTime" width="180" v-if="columns[12].visible"
                        :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="更新人" align="center" prop="updateBy" v-if="columns[12].visible"
+      <el-table-column label="更新人" align="center" prop="updateBy" v-if="columns[13].visible"
                        :show-overflow-tooltip="true"/>
-      <el-table-column label="更新时间" align="center" prop="updateTime" width="180" v-if="columns[13].visible"
+      <el-table-column label="更新时间" align="center" prop="updateTime" width="180" v-if="columns[14].visible"
                        :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="备注" align="center" prop="remark" v-if="columns[14].visible"
+      <el-table-column label="备注" align="center" prop="remark" v-if="columns[15].visible"
                        :show-overflow-tooltip="true"/>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
@@ -350,14 +352,15 @@ const data = reactive({
     {key: 4, label: '父级', visible: true},
     {key: 5, label: '库位层级', visible: true},
     {key: 6, label: '容量', visible: true},
-    {key: 7, label: '入库总数', visible: true},
-    {key: 8, label: '出库总数', visible: true},
-    {key: 9, label: '状态', visible: true},
-    {key: 10, label: '创建人', visible: true},
-    {key: 11, label: '创建时间', visible: false},
-    {key: 12, label: '更新人', visible: false},
-    {key: 13, label: '更新时间', visible: false},
-    {key: 14, label: '备注', visible: false},
+    {key: 7, label: '当前数量', visible: true},
+    {key: 8, label: '入库总数', visible: true},
+    {key: 9, label: '出库总数', visible: true},
+    {key: 10, label: '状态', visible: true},
+    {key: 11, label: '创建人', visible: true},
+    {key: 12, label: '创建时间', visible: false},
+    {key: 13, label: '更新人', visible: false},
+    {key: 14, label: '更新时间', visible: false},
+    {key: 15, label: '备注', visible: false},
   ],
 });
 
